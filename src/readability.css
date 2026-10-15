@@ -1,0 +1,597 @@
+/* Échelle de lecture : chaque composant grandit, sans modifier la palette. */
+:root { font-size: 16px; }
+body { font-size: 16px; }
+.eyebrow { font-size: 12px; letter-spacing: 1.1px; }
+.muted, .detail-explanation { font-size: 16px; }
+.footnote { font-size: 13px; line-height: 1.8; }
+.glass-panel { padding: 26px; }
+.panel-heading { align-items: flex-start; gap: 16px; margin-bottom: 24px; }
+.panel-heading h2 { font-size: 20px; line-height: 1.35; gap: 10px; }
+.panel-heading h2 > svg { width: 22px; height: 22px; }
+.panel-heading p { font-size: 14px; line-height: 1.6; }
+.panel-caption { font-size: 12px; }
+.icon-button { width: 46px; height: 46px; min-width: 46px; }
+.icon-button > svg { width: 22px; height: 22px; }
+.primary-button, .small-button { min-height: 46px; padding: 11px 16px; font-size: 14px; white-space: normal; }
+.primary-button > svg, .small-button > svg { width: 18px; height: 18px; }
+.text-link { min-height: 44px; font-size: 15px; gap: 10px; }
+.text-link > svg { width: 18px; height: 18px; }
+.segments { padding: 4px; gap: 4px; max-width: 100%; }
+.segments button, .daily-panel .segments button { min-height: 44px; padding: 9px 14px; font-size: 14px; }
+.select-field { min-height: 44px; padding: 9px 12px; font-size: 14px; max-width: 100%; }
+.subtle-badge { padding: 7px 10px; font-size: 12px; line-height: 1.5; }
+.subtle-badge > svg { width: 15px; height: 15px; }
+.wordmark { font-size: 30px; }
+.topbar-date, .search-trigger { font-size: 14px; }
+.search-trigger { min-height: 46px; }
+.sidebar { width: 108px; }
+.sidebar nav button { min-height: 80px; gap: 10px; }
+.sidebar nav button > svg { width: 26px; height: 26px; }
+.sidebar nav button span { font-size: 13px; }
+.app-shell { margin-left: 108px; }
+.greeting .eyebrow { font-size: 12px; }
+.greeting p { font-size: 28px; line-height: 1.4; }
+.greeting-status { font-size: 13px; }
+.favorite-pill { min-height: 92px; min-width: 250px; padding: 17px 20px; gap: 18px; }
+.favorite-location { gap: 8px; }
+.favorite-location > span { font-size: 16px; gap: 8px; }
+.favorite-location > span > svg { width: 16px; height: 16px; }
+.favorite-location small { font-size: 12px; }
+.favorite-pill > .weather-icon { width: 32px; height: 32px; }
+.favorite-pill > strong { font-size: 32px; }
+.favorites-bar { overflow-x: auto; padding-bottom: 6px; scrollbar-width: thin; }
+.favorite-pill { flex-shrink: 0; }
+.add-favorite { min-width: 150px; font-size: 14px; }
+.add-favorite > svg { width: 22px; height: 22px; }
+.hero-panel { padding: 30px; }
+.hero-top { flex-wrap: wrap; row-gap: 12px; }
+.hero-top .eyebrow { font-size: 12px; letter-spacing: .8px; }
+.live-label { font-size: 11px; letter-spacing: 1px; }
+.hero-location { align-items: flex-start; flex-wrap: wrap; gap: 16px; }
+.hero-location h1 { font-size: 48px; }
+.hero-location p { font-size: 14px; line-height: 1.6; }
+.regime-pill { position: static; min-height: 44px; font-size: 13px; padding: 10px 12px; gap: 8px; white-space: normal; }
+.regime-pill > svg { width: 18px; height: 18px; }
+.hero-weather { min-height: 280px; }
+.hero-temperature > button { font-size: 144px; }
+.hero-temperature p { font-size: 20px; line-height: 1.5; }
+.hero-highlow { font-size: 15px; gap: 7px; flex-wrap: wrap; line-height: 1.8; }
+.hero-highlow > svg { width: 16px; height: 16px; }
+.hero-bottom { align-items: flex-start; flex-wrap: wrap; gap: 16px; margin-top: 22px; }
+.hero-bottom .eyebrow { font-size: 11px; margin-bottom: 12px; }
+.transparency-link { min-height: 44px; padding-top: 0; font-size: 14px; gap: 9px; white-space: normal; }
+.transparency-link > span { display: inline; }
+.transparency-link > svg { width: 18px; height: 18px; }
+.hero-footnote { flex-wrap: wrap; gap: 8px 18px; font-size: 12px; line-height: 1.7; }
+.intelligence-panel { padding: 28px; }
+.intelligence-title .eyebrow { font-size: 12px; letter-spacing: 1px; }
+.ai-orb { width: 44px; height: 44px; }
+.ai-orb > svg { width: 24px; height: 24px; }
+.intelligence-title .icon-button { width: 44px; min-width: 44px; height: 44px; }
+.intelligence-panel > h2 { font-size: 30px; line-height: 1.35; }
+.intelligence-copy { font-size: 15px; line-height: 1.8; max-width: none; }
+.confidence-block { gap: 20px; margin: 26px 0; }
+.confidence-score { width: 112px; height: 112px; }
+.confidence-score > span { font-size: 38px; }
+.confidence-score small { font-size: 12px; margin-top: 18px; }
+.confidence-block > div > strong { font-size: 17px; }
+.confidence-block > div > p { font-size: 14px; line-height: 1.6; }
+.confidence-block .subtle-badge { font-size: 12px; margin-top: 10px; }
+.regime-influence { padding-top: 20px; }
+.regime-influence > div:first-child { font-size: 14px; flex-wrap: wrap; gap: 8px; }
+.regime-influence button { min-height: 40px; font-size: 15px; }
+.influence-track { height: 8px; margin-top: 12px; gap: 3px; }
+.regime-influence > p { font-size: 12px; white-space: normal; line-height: 1.8; }
+.dimension-mini { flex-wrap: wrap; gap: 12px 18px; margin: 18px 0; }
+.dimension-mini span { font-size: 12px; gap: 8px; }
+.dimension-mini b { font-size: 14px; }
+.intelligence-more { font-size: 15px; padding-top: 16px; }
+.metrics-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+.metric-card { padding: 24px; min-height: 190px; }
+.metric-heading { font-size: 15px; gap: 8px; white-space: normal; align-items: flex-start; }
+.metric-heading > span { gap: 9px; }
+.metric-heading > span > svg { width: 22px; height: 22px; }
+.metric-heading > svg { width: 18px; height: 18px; }
+.metric-main { height: 54px; margin-top: 24px; gap: 16px; }
+.metric-main > strong { font-size: 44px; }
+.metric-main > strong > small { font-size: 16px; margin-left: 6px; }
+.sparkline { width: 42%; height: 48px; max-width: 150px; }
+.metric-wind-arrow { gap: 10px; }
+.metric-wind-arrow > svg { width: 34px; height: 34px; }
+.metric-wind-arrow span { font-size: 16px; }
+.metric-footer { margin-top: 22px; font-size: 13px; line-height: 1.65; gap: 10px; flex-wrap: wrap; }
+.metric-trend { font-size: 12px; gap: 4px; display: flex; }
+.metric-trend > svg { width: 15px; height: 15px; }
+.uv-scale { height: 6px; margin: 14px 0 -8px; gap: 5px; }
+.uv-scale > span { width: 4px; height: 14px; top: -4px; }
+.chart-legend { font-size: 14px; gap: 14px 22px; line-height: 1.7; }
+.chart-legend > span { gap: 9px; }
+.chart-legend i { width: 17px; height: 3px; }
+.chart-legend .legend-rain { width: 9px; height: 9px; }
+.hourly-scroll { margin-top: 24px; width: 100%; }
+.hourly-chart, .forecast-expanded .hourly-chart { width: max(100%, 1680px); min-width: 1680px; padding-right: 0; }
+.hourly-labels { grid-template-columns: repeat(24, minmax(0, 1fr)); margin-top: -4px; padding: 0; }
+.hourly-labels > button { min-height: 124px; font-size: 14px; gap: 15px; padding: 14px 0; }
+.hourly-labels > button > .weather-icon { width: 30px; height: 30px; }
+.hour-wind { font-size: 14px; gap: 4px; }
+.hour-wind > svg { width: 12px; height: 12px; }
+.hour-wind small { font-size: 11px; }
+.chart-instruction { font-size: 13px; padding: 18px 0; line-height: 1.7; }
+.chart-instruction > svg { width: 18px; height: 18px; }
+.chart-placeholder, .empty-inline { font-size: 15px; }
+.daily-panel { padding: 26px; }
+.daily-panel .panel-heading { flex-wrap: wrap; }
+.daily-panel .panel-heading h2 { font-size: 20px; }
+.daily-row { min-height: 76px; padding: 16px 0; gap: 12px; grid-template-columns: minmax(105px,1.2fr) 32px minmax(60px,.8fr) 30px minmax(35px,1fr) 32px; }
+.daily-day { font-size: 14px; }
+.daily-row > .weather-icon { width: 30px; height: 30px; }
+.daily-rain { font-size: 14px; gap: 5px; }
+.daily-rain > svg { width: 14px; height: 14px; }
+.daily-rain small { font-size: 11px; }
+.daily-min, .daily-max { font-size: 18px; }
+.daily-range { height: 6px; }
+.daily-disclaimer, .forecast-expanded .daily-disclaimer { font-size: 12px; line-height: 1.8; margin-top: 18px; }
+.summary-panel { padding: 28px; gap: 26px; flex-direction: column; align-items: stretch; }
+.summary-intro { gap: 16px; }
+.summary-intro > svg { width: 26px; height: 26px; }
+.summary-intro .eyebrow { font-size: 12px; }
+.summary-intro h2 { font-size: 25px; margin-top: 9px; }
+.summary-source { font-size: 12px; line-height: 1.7; }
+.summary-periods { gap: 26px; }
+.summary-periods > div > span { font-size: 16px; gap: 9px; }
+.summary-periods > div > span > svg { width: 21px; height: 21px; }
+.summary-periods p { font-size: 15px; line-height: 1.8; margin-top: 10px; }
+.model-strip { flex-wrap: wrap; gap: 16px; padding: 22px 0; }
+.model-strip > span { font-size: 11px; }
+.model-strip > div { gap: 10px 20px; }
+.model-strip button { font-size: 13px; min-height: 40px; gap: 8px; }
+.model-strip button i { width: 6px; height: 6px; }
+.app-footer { font-size: 12px; flex-wrap: wrap; gap: 20px; }
+.footer-brand { font-size: 15px; flex-wrap: wrap; gap: 9px; }
+.footer-brand > span { font-size: 12px; }
+.app-footer button { font-size: 12px; min-height: 44px; }
+.page-intro h1 { font-size: 40px; }
+.page-intro p { font-size: 16px; line-height: 1.8; }
+.page-intro > .primary-button { font-size: 14px; }
+.section-title h2 { font-size: 28px; }
+.section-title .eyebrow { font-size: 12px; }
+th { font-size: 12px; padding: 14px 18px; }
+td { font-size: 14px; padding: 20px 18px; }
+.table-model strong { font-size: 16px; }
+.table-model small { font-size: 12px; line-height: 1.7; margin-top: 6px; }
+.model-rank { font-size: 14px; }
+.cell-note, .small-cell { font-size: 12px; line-height: 1.7; }
+.empty-table { font-size: 15px; padding: 28px 12px !important; line-height: 1.8; }
+.calibration-note { padding: 18px; gap: 14px; }
+.calibration-note strong { font-size: 16px; }
+.calibration-note p { font-size: 14px; line-height: 1.8; }
+.regime-feature h2 { font-size: 32px; }
+.regime-feature p { font-size: 15px; }
+.regime-feature > div > strong { font-size: 48px; }
+.regime-feature > div > strong > small { font-size: 14px; }
+.dimension-bars { gap: 20px; }
+.dimension-bars > div { font-size: 14px; gap: 12px; }
+.dimension-bars > div > span { width: 108px; }
+.dimension-bars > div > div { height: 7px; }
+.dimension-bars b { font-size: 14px; width: 40px; }
+.regime-card { padding: 24px; }
+.regime-card-top { font-size: 16px; }
+.regime-number { font-size: 13px; }
+.regime-card h3 { font-size: 21px; margin-top: 22px; }
+.regime-card p { font-size: 14px; line-height: 1.8; min-height: 65px; }
+.regime-meter { height: 6px; margin-top: 22px; }
+.lab-badges > span { padding: 14px 16px; font-size: 14px; flex-wrap: wrap; }
+.lab-badges strong { font-size: 14px; }
+.lab-analysis h2 { font-size: 32px; }
+.lab-analysis p, .lab-analysis p.muted { font-size: 16px; line-height: 1.85; }
+.lab-analysis > .summary-source { font-size: 12px; }
+.divergence-chart { gap: 24px; }
+.divergence-chart > div { font-size: 14px; }
+.divergence-chart > div > span { width: 112px; }
+.divergence-chart > div > strong { width: 46px; font-size: 16px; }
+.divergence-track { height: 6px; }
+.divergence-track > i { width: 12px; height: 12px; }
+.divergence-scale { font-size: 12px; margin-left: 124px; flex-wrap: wrap; gap: 8px; }
+.replay-number { width: 46px; height: 46px; font-size: 15px; }
+.replay-steps h3 { font-size: 17px; }
+.replay-steps p { font-size: 14px; line-height: 1.8; }
+.formula { padding: 18px 0; }
+.formula > span { font-size: 14px; margin-bottom: 10px; }
+.formula code { font-size: 15px; line-height: 1.8; }
+.source-list > div { padding: 17px 0; gap: 15px; }
+.source-list strong { font-size: 15px; }
+.source-list small { font-size: 12px; margin-top: 6px; line-height: 1.7; }
+.history-overview .glass-panel { padding: 26px; }
+.history-overview .eyebrow { font-size: 12px; letter-spacing: 1px; }
+.history-overview strong { font-size: 50px; }
+.history-overview strong small { font-size: 22px; }
+.history-overview .glass-panel > span:last-child { font-size: 14px; line-height: 1.7; }
+.history-chart { overflow-x: auto; }
+.history-chart > svg { min-width: 1000px; }
+.history-empty h3 { font-size: 28px; }
+.history-empty p { font-size: 16px; }
+.station-radar { height: 380px; }
+.station-radar svg text { font-size: 18px; }
+.map-legend { font-size: 12px; gap: 16px; flex-wrap: wrap; line-height: 1.7; }
+.station-side > .glass-panel > p { font-size: 16px; line-height: 1.8; max-width: none; }
+.station-count > strong { font-size: 64px; }
+.station-bands-mini { gap: 16px; }
+.station-bands-mini span { font-size: 12px; }
+.station-bands-mini strong { font-size: 22px; }
+.station-note h3 { font-size: 22px; }
+.station-note > p { font-size: 15px !important; }
+.status-tag { font-size: 12px; padding: 6px 9px; }
+.selected-station { font-size: 15px; padding: 18px; gap: 14px; }
+.selected-station > span { font-size: 13px; line-height: 1.7; }
+.wind-rose { width: 220px; height: 220px; }
+.wind-rose svg text { font-size: 14px; }
+.wind-rose > div { top: 60%; gap: 12px; }
+.wind-rose strong { font-size: 21px; }
+.wind-rose small, .wind-rose > div > span { font-size: 12px; }
+.wind-feature .eyebrow { font-size: 12px; line-height: 1.7; }
+.wind-feature > div:last-child > strong { font-size: 42px; }
+.wind-feature > div:last-child > strong > small { font-size: 17px; }
+.sun-arc > svg { height: 170px; }
+.sun-arc > div > span { font-size: 14px; }
+.sun-arc strong { font-size: 28px; }
+.connection-banner { font-size: 15px; line-height: 1.7; flex-wrap: wrap; padding: 16px; }
+.connection-banner button { min-height: 44px; font-size: 14px; }
+.detail-dialog { max-width: min(720px, calc(100vw - 24px)); }
+.detail-dialog--wide { max-width: min(960px, calc(100vw - 24px)); }
+.dialog-inner { padding: 30px; }
+.dialog-header .eyebrow { font-size: 12px; }
+.dialog-header h2 { font-size: 32px; }
+.dialog-header p { font-size: 15px; line-height: 1.8; }
+.detail-dialog h3 { font-size: 19px; margin: 28px 0 20px; }
+.search-input { height: 58px; gap: 14px; }
+.search-input input { font-size: 16px; }
+.geolocate-button { min-height: 56px; font-size: 15px; gap: 12px; }
+.search-results-label { font-size: 12px; }
+.search-results > button { min-height: 84px; gap: 16px; padding: 18px 4px; }
+.search-result-icon { width: 46px; height: 46px; }
+.search-results strong { font-size: 18px; }
+.search-results > button > div > span { font-size: 14px; line-height: 1.7; }
+.explanation-box { font-size: 15px; padding: 20px; gap: 14px; }
+.explanation-box > svg { width: 22px; height: 22px; }
+.distance-bands { gap: 14px; }
+.distance-bands > div { padding: 20px 10px; gap: 12px; }
+.band-circle { width: 38px; height: 38px; font-size: 14px; }
+.distance-bands strong { font-size: 18px; }
+.distance-bands > div > span:not(.band-circle) { font-size: 13px; }
+.distance-bands b { font-size: 23px; }
+.microclimate-grid > div { padding: 20px; }
+.microclimate-grid span { font-size: 13px; line-height: 1.6; }
+.microclimate-grid strong { font-size: 23px; margin-top: 12px; }
+.hour-detail-hero > div > span { font-size: 19px; }
+.hour-detail-hero p { font-size: 14px; line-height: 1.7; }
+.detail-stats { gap: 14px; }
+.detail-stats > button, .detail-stats > div { min-height: 108px; padding: 20px; }
+.detail-stats > button > span, .detail-stats > div > span { font-size: 14px; line-height: 1.6; gap: 8px; }
+.detail-stats > button > span > svg { width: 20px; height: 20px; }
+.detail-stats strong { font-size: 30px; margin-top: 15px; }
+.detail-stats strong small { font-size: 15px; }
+.provenance-facts > span { font-size: 14px; line-height: 1.7; }
+.provenance-facts strong { font-size: 23px; }
+.metric-detail-value > span { font-size: 14px; }
+.model-detail-list > div { gap: 16px; padding: 20px 0; }
+.model-detail-list > div > span:first-child { font-size: 16px; flex-wrap: wrap; }
+.model-detail-list small { font-size: 12px; }
+.model-detail-list strong { font-size: 19px; }
+.model-detail-list > div > span:last-child { font-size: 13px; }
+.observation-fields > label { font-size: 15px; line-height: 1.6; }
+.observation-fields input { height: 50px; font-size: 20px; }
+.observation-fields small { font-size: 14px; }
+.install-features > span { font-size: 16px; line-height: 1.7; }
+.settings-favorites > div { min-height: 66px; }
+.settings-favorites > div > span { font-size: 17px; }
+.settings-actions .small-button { font-size: 14px; }
+.error-message { font-size: 14px; }
+.loading-indicator, .toast-message, .update-banner { font-size: 14px; line-height: 1.7; padding: 14px 18px; }
+.loading-indicator > span:last-child { font-size: 13px; }
+.update-banner > button { min-height: 44px; font-size: 14px; }
+
+/* La largeur est attribuée aux cartes et à leurs contrôles plutôt qu'aux marges. */
+@media (max-width: 1100px) {
+  .weather-top-grid, .forecast-grid, .ranking-top, .lab-grid, .stations-grid { grid-template-columns: 1fr; }
+  .intelligence-panel { display: block; }
+  .metrics-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .regime-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .replay-steps { grid-template-columns: 1fr; gap: 28px; }
+  .replay-steps > div { padding-left: 65px; min-height: 90px; }
+  .replay-number { position: absolute; left: 0; top: 0; }
+  .replay-steps h3 { margin-top: 2px; }
+  .replay-arrow { left: 16px; right: auto; top: auto; bottom: -19px; rotate: 90deg; }
+}
+
+@media (max-width: 700px) {
+  .app-shell { margin-left: 0; padding: 0 8px; }
+  .topbar { min-height: 86px; height: auto; padding: 12px 8px; gap: 12px; }
+  .topbar .edition { display: none; }
+  .topbar-tools { gap: 8px; }
+  .wordmark { font-size: 31px; }
+  .search-trigger { width: 46px; min-width: 46px; padding: 10px; justify-content: center; }
+  .search-trigger > svg { width: 24px; height: 24px; }
+  .install-button { width: 46px; height: 46px; min-width: 46px; }
+  .greeting { margin: 25px 10px; }
+  .greeting p { font-size: 25px; line-height: 1.45; }
+  .greeting .eyebrow { font-size: 12px; letter-spacing: 1px; }
+  .favorites-bar { margin: 0 -8px 22px; padding: 0 8px 8px; gap: 12px; }
+  .favorite-pill { flex: 0 0 280px; min-width: 0; max-width: none; min-height: 96px; padding: 18px; gap: 16px; }
+  .favorite-location > span { font-size: 17px; gap: 8px; }
+  .favorite-location small { font-size: 13px; }
+  .favorite-pill > strong { font-size: 34px; }
+  .favorite-pill > .weather-icon { width: 33px; height: 33px; }
+  .add-favorite { min-width: 62px; padding: 14px; }
+  .add-favorite > svg { width: 26px; height: 26px; }
+  .glass-panel { padding: 22px 18px; border-radius: 18px; }
+  .weather-top-grid, .forecast-grid, .forecast-expanded, .ranking-top, .lab-grid, .stations-grid, .forecast-extras { gap: 18px; }
+  .panel-heading { flex-wrap: wrap; gap: 14px; margin-bottom: 22px; }
+  .panel-heading h2, .daily-panel .panel-heading h2, .forecast-extras .panel-heading h2 { font-size: 21px; }
+  .panel-heading p { font-size: 14px; }
+  .panel-caption { font-size: 13px; }
+  .hero-panel { padding: 25px 20px 20px; }
+  .hero-top .eyebrow { font-size: 12px; line-height: 1.7; letter-spacing: .5px; }
+  .live-label { font-size: 11px; }
+  .hero-location { flex-direction: column; align-items: flex-start; gap: 13px; margin-top: 22px; }
+  .hero-location h1 { font-size: clamp(38px, 10.7vw, 48px); line-height: 1.15; }
+  .hero-location p { font-size: 14px; margin-top: 12px; }
+  .hero-location .regime-pill { position: static; font-size: 14px; min-height: 46px; padding: 10px 12px; margin-top: 0; gap: 8px; }
+  .hero-weather { min-height: 300px; }
+  .hero-temperature > button { font-size: clamp(116px, 34vw, 152px); }
+  .hero-temperature sup { font-size: 66px; }
+  .hero-temperature p { font-size: 20px; margin-top: 12px; max-width: 100%; }
+  .hero-highlow { font-size: 16px; gap: 7px; flex-wrap: wrap; line-height: 1.8; }
+  .hero-highlow i { margin: 0 4px; }
+  .cloud-art { width: 58%; right: -9%; top: -10px; height: 82%; }
+  .hero-bottom { display: flex; flex-direction: column; align-items: stretch; gap: 14px; margin-top: 10px; padding-top: 20px; }
+  .hero-bottom .eyebrow { font-size: 12px; }
+  .hero-bottom .segments { display: flex; width: 100%; }
+  .hero-bottom .segments button { flex: 1; font-size: 15px; min-height: 48px; padding: 10px 8px; }
+  .transparency-link { width: 100%; justify-content: space-between; font-size: 15px; padding: 8px 0; min-height: 46px; }
+  .transparency-link > span { display: inline; flex: 1; text-align: left; }
+  .transparency-link > svg { width: 21px; height: 21px; }
+  .hero-footnote { display: flex; flex-direction: column; gap: 7px; margin-top: 16px; font-size: 13px; }
+  .intelligence-panel { display: block; padding: 24px 20px; }
+  .intelligence-title .eyebrow { font-size: 12px; letter-spacing: .8px; }
+  .intelligence-title { gap: 11px; }
+  .intelligence-panel > h2 { font-size: 30px; margin-top: 22px; }
+  .intelligence-copy { font-size: 16px; margin-top: 15px; line-height: 1.8; }
+  .confidence-block { flex-direction: row; gap: 18px; align-items: center; text-align: left; margin: 26px 0; }
+  .confidence-score { width: 110px; height: 110px; }
+  .confidence-score > span { font-size: 38px; }
+  .confidence-block > div > strong { font-size: 17px; line-height: 1.5; display: block; }
+  .confidence-block > div > p { font-size: 14px; margin-top: 6px; }
+  .confidence-block .subtle-badge { font-size: 12px; margin-top: 10px; }
+  .regime-influence > div:first-child { font-size: 15px; align-items: flex-start; }
+  .regime-influence button { font-size: 15px; min-height: 40px; }
+  .regime-influence > p { font-size: 13px; margin-top: 12px; white-space: normal; }
+  .dimension-mini { display: grid; grid-template-columns: 1fr; gap: 12px; margin: 22px 0; }
+  .dimension-mini span { display: flex; justify-content: space-between; font-size: 15px; }
+  .dimension-mini b { font-size: 16px; }
+  .intelligence-more { font-size: 16px; padding-top: 18px; }
+  .metrics-grid { grid-template-columns: 1fr; gap: 14px; margin-top: 18px; }
+  .metric-card { min-height: 186px; padding: 23px 22px; }
+  .metric-heading { font-size: 17px; line-height: 1.5; }
+  .metric-heading > span > svg { width: 24px; height: 24px; }
+  .metric-heading > svg { width: 21px; height: 21px; }
+  .metric-main { height: 58px; margin-top: 20px; }
+  .metric-main > strong { font-size: 48px; }
+  .metric-main > strong > small { font-size: 19px; }
+  .sparkline { width: 42%; height: 50px; max-width: 160px; }
+  .metric-footer { font-size: 14px; gap: 10px; margin-top: 18px; }
+  .metric-trend { display: flex; font-size: 13px; }
+  .metric-wind-arrow > svg { width: 38px; height: 38px; }
+  .metric-wind-arrow span { font-size: 18px; }
+  .hourly-panel { padding: 24px 18px 0; }
+  .chart-legend { font-size: 14px; gap: 10px 18px; }
+  .hourly-scroll { width: 100%; margin-right: 0; margin-top: 28px; }
+  .hourly-labels > button { font-size: 15px; min-height: 136px; gap: 16px; padding: 16px 0; }
+  .hourly-labels > button > svg { width: 32px; height: 32px; }
+  .hour-wind { font-size: 14px; }
+  .hour-wind small { font-size: 11px; }
+  .chart-instruction { font-size: 14px; line-height: 1.8; gap: 12px; margin-top: 16px; padding: 18px 0; }
+  .daily-panel { padding: 24px 18px 18px; }
+  .daily-panel .segments { width: 100%; display: flex; padding: 4px; }
+  .daily-panel .segments button { flex: 1; min-height: 46px; font-size: 15px; padding: 9px 12px; }
+  .daily-row, .forecast-expanded .daily-row { grid-template-columns: minmax(0, 1fr) 40px 100px; grid-template-rows: auto auto 6px; min-height: 118px; padding: 18px 0; gap: 9px 14px; }
+  .daily-day, .forecast-expanded .daily-day { grid-column: 1; grid-row: 1; font-size: 17px; line-height: 1.5; }
+  .daily-row > .weather-icon, .forecast-expanded .daily-row > .weather-icon { grid-column: 2; grid-row: 1 / 3; width: 36px; height: 36px; }
+  .daily-rain, .forecast-expanded .daily-rain { grid-column: 1; grid-row: 2; font-size: 15px; gap: 6px; }
+  .daily-rain small { font-size: 13px; }
+  .daily-rain > svg { width: 17px; height: 17px; }
+  .daily-min { grid-column: 3; grid-row: 2; font-size: 19px; }
+  .daily-max { grid-column: 3; grid-row: 1; font-size: 25px; }
+  .daily-min::before { content: 'Min '; font-size: 12px; }
+  .daily-max::before { content: 'Max '; font-size: 12px; }
+  .daily-range { grid-column: 3; grid-row: 3; height: 6px; width: 100%; }
+  .daily-wind, .daily-open, .forecast-expanded .daily-wind, .forecast-expanded .daily-open { display: none; }
+  .daily-disclaimer, .forecast-expanded .daily-disclaimer { font-size: 13px; margin-top: 18px; }
+  .summary-panel { padding: 26px 20px; gap: 24px; }
+  .summary-intro { gap: 14px; }
+  .summary-intro .eyebrow { font-size: 12px; line-height: 1.7; }
+  .summary-intro h2 { font-size: 27px; line-height: 1.35; }
+  .summary-source { font-size: 13px; }
+  .summary-periods { display: grid; grid-template-columns: 1fr; gap: 24px; }
+  .summary-periods > div { padding: 20px 0 0; }
+  .summary-periods > div > span { font-size: 18px; gap: 10px; }
+  .summary-periods > div > span > svg { width: 24px; height: 24px; }
+  .summary-periods p { font-size: 16px; line-height: 1.85; margin-top: 12px; }
+  .model-strip { margin: 28px 10px 20px; padding: 24px 0; }
+  .model-strip > span { font-size: 12px; letter-spacing: .8px; white-space: normal; }
+  .model-strip > div { justify-content: center; gap: 8px 20px; }
+  .model-strip button { font-size: 14px; min-height: 44px; }
+  .app-footer { margin: 0 10px; padding: 20px 0 calc(120px + env(safe-area-inset-bottom)); font-size: 13px; gap: 20px; }
+  .footer-brand { font-size: 17px; gap: 10px; }
+  .footer-brand > span { font-size: 13px; margin-left: 0; line-height: 1.7; }
+  .app-footer > div { font-size: 13px; gap: 8px 12px; line-height: 1.8; }
+  .app-footer button { font-size: 13px; margin-left: 0; }
+  .mobile-nav { grid-template-columns: repeat(6, minmax(0, 1fr)); padding: 9px 4px calc(13px + env(safe-area-inset-bottom)); }
+  .mobile-nav > button { min-width: 0; min-height: 60px; gap: 9px; padding: 6px 0; }
+  .mobile-nav > button > svg { width: 25px; height: 25px; }
+  .mobile-nav > button > span { font-size: clamp(10px, 2.9vw, 12px); line-height: 1.3; letter-spacing: -.2px; }
+  .page-intro { margin: 14px 10px 26px; }
+  .page-intro h1 { font-size: 35px; line-height: 1.2; margin: 14px 0; }
+  .page-intro .eyebrow { font-size: 12px; letter-spacing: 1px; }
+  .page-intro p { font-size: 16px; line-height: 1.8; }
+  .page-intro > .primary-button { font-size: 15px; padding: 12px 16px; margin-top: 20px; }
+  .regime-feature { min-height: 300px; padding: 26px 20px; }
+  .regime-feature .eyebrow { font-size: 12px; }
+  .regime-feature > div { width: 72%; }
+  .regime-feature h2 { font-size: 32px; }
+  .regime-feature p { font-size: 15px; }
+  .regime-feature > div > strong { font-size: 48px; flex-wrap: wrap; }
+  .regime-feature > div > strong > small { font-size: 14px; }
+  .regime-grid { grid-template-columns: 1fr; gap: 14px; }
+  .regime-card { min-height: 180px; padding: 24px; }
+  .regime-card h3 { font-size: 24px; margin-top: 18px; }
+  .regime-card p { font-size: 16px; min-height: 0; }
+  .regime-card-top { font-size: 17px; }
+  .regime-number { font-size: 14px; }
+  .section-title { margin: 28px 10px 20px; }
+  .section-title h2 { font-size: 27px; max-width: none; }
+  .section-title .eyebrow { font-size: 12px; }
+  .dimension-bars > div { font-size: 14px; gap: 10px; }
+  .dimension-bars > div > span { width: 110px; }
+  .dimension-bars b { font-size: 14px; }
+  .calibration-note { padding: 18px 15px; gap: 12px; }
+  .calibration-note strong { font-size: 16px; }
+  .calibration-note p { font-size: 15px; }
+  .footnote, .transparency-content > .footnote { font-size: 13px; line-height: 1.85; }
+  .small-button, .settings-actions .small-button { font-size: 14px; min-height: 46px; padding: 10px 14px; }
+  .lab-badges { grid-template-columns: 1fr; gap: 12px; margin-bottom: 20px; }
+  .lab-badges > span, .lab-badges > span:last-child { grid-column: auto; font-size: 15px; padding: 17px; gap: 10px; flex-wrap: wrap; }
+  .lab-badges strong { font-size: 15px; }
+  .lab-badges svg { width: 21px; height: 21px; }
+  .lab-analysis { padding: 26px 20px; }
+  .lab-analysis > .eyebrow { font-size: 12px; }
+  .lab-analysis h2 { font-size: 31px; }
+  .lab-analysis p, .lab-analysis p.muted { font-size: 16px; }
+  .lab-analysis > .summary-source { font-size: 13px; }
+  .divergence-chart > div { font-size: 14px; gap: 10px; }
+  .divergence-chart > div > span { width: 105px; }
+  .divergence-chart > div > strong { font-size: 17px; width: 43px; }
+  .divergence-scale { font-size: 12px; margin-left: 0; gap: 10px; }
+  .replay-steps > div { min-height: 100px; padding-left: 62px; }
+  .replay-steps h3 { font-size: 20px; }
+  .replay-steps p { font-size: 15px; margin-top: 9px; }
+  .formula code { font-size: 14px; }
+  .history-overview { grid-template-columns: 1fr; gap: 14px; }
+  .history-overview .glass-panel { min-height: 165px; padding: 24px; }
+  .history-overview .eyebrow { font-size: 12px; letter-spacing: .8px; min-height: 0; }
+  .history-overview strong { font-size: 50px; margin: 16px 0 9px; }
+  .history-overview strong small { font-size: 23px; margin-left: 6px; }
+  .history-overview .glass-panel > span:last-child { font-size: 15px; }
+  .history-empty { min-height: 360px; padding: 34px 4px; }
+  .history-empty h3 { font-size: 27px; line-height: 1.4; }
+  .history-empty p { font-size: 16px; }
+  .empty-orbits { width: 92px; height: 92px; margin-bottom: 34px; }
+  .station-map-panel { padding: 24px 18px; }
+  .station-map-panel .panel-heading h2 { font-size: 21px; }
+  .station-map-panel .segments { width: 100%; display: flex; }
+  .station-map-panel .segments button { font-size: 15px; min-height: 46px; padding: 10px; flex: 1; }
+  .station-radar { height: 340px; }
+  .map-legend { font-size: 12px; gap: 12px; }
+  .station-side { grid-template-columns: 1fr; gap: 16px; }
+  .station-side .glass-panel { padding: 24px; }
+  .station-side .eyebrow { font-size: 12px; letter-spacing: 1px; }
+  .station-side > .glass-panel > p { font-size: 16px; }
+  .station-count > strong { font-size: 64px; }
+  .station-count > svg { width: 36px; height: 36px; }
+  .station-bands-mini { grid-template-columns: 1fr 1fr; gap: 20px; padding-top: 20px; }
+  .station-bands-mini span { font-size: 14px; }
+  .station-bands-mini strong { font-size: 24px; }
+  .station-note h3 { font-size: 24px; }
+  .station-note > p { font-size: 16px !important; }
+  .selected-station { font-size: 16px; gap: 12px; }
+  .selected-station > span { font-size: 14px; }
+  .forecast-extras { grid-template-columns: 1fr; }
+  .wind-feature { flex-direction: column; align-items: center; gap: 22px; }
+  .wind-rose { width: 240px; height: 240px; }
+  .wind-rose > div { top: 60%; }
+  .wind-feature > div:last-child { text-align: center; }
+  .wind-feature > div:last-child .eyebrow { font-size: 12px; justify-content: center; }
+  .wind-feature > div:last-child > strong { font-size: 46px; margin: 16px 0; }
+  .sun-arc { margin-top: 24px; }
+  .sun-arc > div { padding: 0 8px; gap: 12px; }
+  .sun-arc > div > span { font-size: 15px; }
+  .sun-arc strong { font-size: 29px; }
+  .detail-dialog, .detail-dialog--wide { width: calc(100vw - 12px); max-width: calc(100vw - 12px); max-height: calc(100dvh - 18px); border-radius: 20px; }
+  .dialog-inner { padding: 24px 18px; }
+  .dialog-header { gap: 12px; }
+  .dialog-header h2 { font-size: 29px; line-height: 1.3; }
+  .dialog-header .eyebrow { font-size: 12px; }
+  .dialog-header p { font-size: 15px; }
+  .dialog-header > .icon-button { width: 44px; min-width: 44px; height: 44px; }
+  .detail-stats { grid-template-columns: 1fr 1fr; gap: 12px; }
+  .detail-stats > button, .detail-stats > div { min-height: 116px; padding: 17px 14px; }
+  .detail-stats > button > span, .detail-stats > div > span { font-size: 14px; gap: 7px; }
+  .detail-stats > button > span > svg { width: 19px; height: 19px; }
+  .detail-stats strong { font-size: 29px; margin-top: 14px; }
+  .detail-stats strong small { font-size: 15px; }
+  .hour-detail-hero { gap: 18px; }
+  .hour-detail-hero > svg { width: 58px; height: 58px; }
+  .hour-detail-hero > div { flex-basis: 100%; }
+  .hour-detail-hero > div > span { font-size: 21px; }
+  .hour-detail-hero p { font-size: 15px; }
+  .provenance-facts { grid-template-columns: 1fr; gap: 22px; padding: 24px 0; }
+  .provenance-facts > span { font-size: 15px; }
+  .provenance-facts strong { font-size: 25px; }
+  .metric-detail-value { gap: 16px; flex-wrap: wrap; }
+  .metric-detail-value > strong { font-size: 58px; }
+  .metric-detail-value small { font-size: 23px; }
+  .metric-detail-value > svg { width: 35px; height: 35px; }
+  .metric-detail-value > span { font-size: 15px; }
+  .detail-explanation { font-size: 16px; }
+  .model-detail-list > div { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 12px; row-gap: 6px; padding: 22px 0; }
+  .model-detail-list > div > span:first-child { grid-column: 1; grid-row: 1 / 3; font-size: 16px; gap: 9px; min-width: 0; }
+  .model-detail-list small { display: block; width: 100%; padding-left: 13px; margin-left: 0; font-size: 13px; line-height: 1.7; }
+  .model-detail-list > div > strong { grid-column: 2; grid-row: 1; font-size: 22px; min-width: 0; }
+  .model-detail-list > div > span:last-child { grid-column: 2; grid-row: 2; font-size: 13px; min-width: 0; }
+  .distance-bands { grid-template-columns: 1fr 1fr; gap: 12px; }
+  .distance-bands > div { padding: 22px 10px; gap: 12px; }
+  .distance-bands strong { font-size: 20px; }
+  .distance-bands > div > span:not(.band-circle) { font-size: 14px; }
+  .distance-bands b { font-size: 25px; }
+  .microclimate-grid { grid-template-columns: 1fr; gap: 12px; }
+  .microclimate-grid > div { padding: 20px; }
+  .microclimate-grid span { font-size: 15px; }
+  .microclimate-grid strong { font-size: 25px; }
+  .explanation-box { padding: 18px 15px; gap: 12px; font-size: 15px; }
+  .explanation-box > svg { width: 22px; height: 22px; }
+  .search-input { height: 60px; padding: 0 14px; }
+  .search-input input { font-size: 16px; }
+  .geolocate-button { font-size: 15px; min-height: 64px; }
+  .search-results strong { font-size: 19px; }
+  .search-results > button > div > span { font-size: 14px; }
+  .observation-fields { grid-template-columns: 1fr; gap: 22px; }
+  .observation-fields > label { font-size: 16px; }
+  .observation-fields input { height: 54px; font-size: 21px; }
+  .observation-fields small { font-size: 15px; }
+  .observation-form .primary-button { font-size: 16px; min-height: 52px; }
+  .settings-actions { flex-direction: column; }
+  .settings-actions .small-button { min-height: 48px; font-size: 15px; }
+  .loading-indicator, .toast-message, .update-banner { bottom: calc(100px + env(safe-area-inset-bottom)); font-size: 14px; padding: 14px 16px; max-width: calc(100vw - 16px); }
+  .update-banner { width: calc(100vw - 16px); }
+  .update-banner > button { font-size: 15px; }
+}
+
+@media (min-width: 480px) and (max-width: 700px) {
+  .metrics-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .metric-card { padding: 22px 18px; }
+  .metric-main > strong { font-size: 42px; }
+  .metric-main > strong > small { font-size: 16px; }
+}
+
+@media (max-width: 359px) {
+  .hero-panel, .intelligence-panel { padding-left: 17px; padding-right: 17px; }
+  .hero-highlow { font-size: 15px; }
+  .hero-highlow i { display: none; }
+  .hero-highlow { max-width: 250px; }
+  .confidence-block { flex-direction: column; text-align: center; }
+  .intelligence-title .eyebrow { font-size: 11px; }
+  .daily-row, .forecast-expanded .daily-row { grid-template-columns: minmax(0, 1fr) 34px 90px; gap: 8px 10px; }
+  .daily-day, .forecast-expanded .daily-day { font-size: 16px; }
+  .daily-min { font-size: 18px; }
+  .daily-max { font-size: 24px; }
+  .detail-stats { grid-template-columns: 1fr; }
+}

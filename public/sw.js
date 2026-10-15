@@ -1,5 +1,5 @@
 /* Coquille et dernières données : stale-while-revalidate, sans inventer de réponse météo. */
-const VERSION='atmosphere-v1.0.1', SHELL=`${VERSION}-shell`, DATA=`${VERSION}-data`;
+const VERSION='atmosphere-v1.0.2', SHELL=`${VERSION}-shell`, DATA=`${VERSION}-data`;
 const BUILD_ASSETS = [];
 const ORIGINS=['https://api.open-meteo.com','https://geocoding-api.open-meteo.com','https://archive-api.open-meteo.com','https://api.opensensemap.org','https://public.opendatasoft.com'];
 self.addEventListener('install',event=>event.waitUntil(caches.open(SHELL).then(cache=>cache.addAll(['/','/manifest.webmanifest','/icon.svg','/icons/icon-192.png','/icons/icon-512.png',...BUILD_ASSETS]))));
