@@ -1,8 +1,8 @@
 /* Coquille et dernières données : stale-while-revalidate, sans inventer de réponse météo. */
-const VERSION='atmosphere-v1.0.3', SHELL=`${VERSION}-shell`, DATA=`${VERSION}-data`;
+const VERSION='atmosphere-v1.0.4', SHELL=`${VERSION}-shell`, DATA=`${VERSION}-data`;
 const BUILD_ASSETS = [];
 const ORIGINS=['https://api.open-meteo.com','https://geocoding-api.open-meteo.com','https://archive-api.open-meteo.com','https://api.opensensemap.org','https://public.opendatasoft.com'];
-self.addEventListener('install',event=>event.waitUntil(caches.open(SHELL).then(cache=>cache.addAll(['/','/manifest.webmanifest','/icon.svg','/icons/icon-192.png','/icons/icon-512.png',...BUILD_ASSETS]))));
+self.addEventListener('install',event=>event.waitUntil(caches.open(SHELL).then(cache=>cache.addAll(['/','/manifest.webmanifest','/icon.svg','/landscape.webp','/icons/icon-192.png','/icons/icon-512.png',...BUILD_ASSETS]))));
 self.addEventListener('activate',event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key.startsWith('atmosphere-')&&!key.startsWith(VERSION)).map(key=>caches.delete(key)))).then(()=>self.clients.claim())));
 self.addEventListener('message',event=>{if(event.data?.type==='SKIP_WAITING')self.skipWaiting();});
 self.addEventListener('fetch',event=>{
