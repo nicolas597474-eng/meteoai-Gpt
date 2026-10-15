@@ -1,0 +1,2 @@
+/* Cartes larges sur mobile, dimensions compactes et typographie lisible. */
+@media(max-width:700px){.app-shell{padding-left:8px;padding-right:8px}.favorites-bar{margin-left:-8px;margin-right:-8px;padding-left:8px;padding-right:8px}.metric-heading{white-space:normal}.metric-footer{flex-wrap:wrap;gap:4px}.panel-heading{flex-wrap:wrap}.hero-highlow{flex-wrap:wrap}.hero-footnote{flex-wrap:wrap}.daily-day{font-size:12px}.daily-rain{font-size:11px}.daily-min,.daily-max{font-size:13px}.history-overview .eyebrow{letter-spacing:.4px}.metric-card{min-width:0}}

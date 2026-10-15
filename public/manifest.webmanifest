@@ -1,0 +1,7 @@
+{
+  "id":"/", "name":"MeteoAI — Atmosphère", "short_name":"MeteoAI",
+  "description":"La météo qui apprend de ses erreurs. Prévisions multi-modèles et météo locale expliquées.",
+  "lang":"fr", "start_url":"/", "scope":"/", "display":"standalone",
+  "background_color":"#182c41", "theme_color":"#182c41", "categories":["weather","utilities"],
+  "icons":[{"src":"/icons/icon-192.png","sizes":"192x192","type":"image/png","purpose":"any"},{"src":"/icons/icon-512.png","sizes":"512x512","type":"image/png","purpose":"any"},{"src":"/icons/maskable-512.png","sizes":"512x512","type":"image/png","purpose":"maskable"}]
+}
