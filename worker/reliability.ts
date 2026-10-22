@@ -6,26 +6,19 @@ import {PUBLIC_RANKING_EVIDENCE_THRESHOLDS} from '../server/weatherReliabilityCo
 import {getDailyForecastValidTime} from '../server/dailyForecastVerification';
 import {getParisDateAndHour} from '../server/parisHourlyTime';
 import {ApiError} from './api-error';
+import {RELIABILITY_HORIZONS} from '../shared/reliabilityHorizons';
+import {readFusionVerificationStatus} from './fusion-verification';
+export {RELIABILITY_HORIZONS} from '../shared/reliabilityHorizons';
 
 const HOUR=3600000,DAY=24*HOUR,LOCATION='50.757_2.520';
 const models=new Map<string,string>(OFFICIAL_HOURLY_MODELS.map(m=>[m.name,m.modelId]));
-// Bornes exactes en heures ; aucun bucket plus large ne remplace la fenêtre choisie.
-export const RELIABILITY_HORIZONS=[
- {id:'0-6h',label:'0–6 h',min:0,max:6,storageBucket:null},
- {id:'6-24h',label:'6–24 h',min:6,max:24,storageBucket:'6_24h'},
- {id:'24-48h',label:'24–48 h',min:24,max:48,storageBucket:null},
- {id:'2-3d',label:'2–3 jours',min:48,max:72,storageBucket:null},
- {id:'4-7d',label:'4–7 jours',min:96,max:168,storageBucket:null},
- {id:'8-10d',label:'8–10 jours',min:192,max:240,storageBucket:null},
- {id:'11-15d',label:'11–15 jours',min:264,max:360,storageBucket:null},
-] as const;
 const variables=[['temperature','Température','°C'],['rain_liquid_1h','Pluie liquide · 1 h','mm'],['wind_speed','Vent à 10 m','km/h'],['wind_gust','Rafales à 10 m · max 1 h','km/h'],['humidity','Humidité','%'],['pressure_msl','Pression au niveau de la mer','hPa']];
 const periods:Record<string,number>={'24h':1,'7d':7,'30d':30,'90d':90,'365d':365};
 const shift=(date:string,days:number)=>new Date(Date.parse(date+'T12:00:00Z')+days*DAY).toISOString().slice(0,10);
 type Horizon=(typeof RELIABILITY_HORIZONS)[number];
 type CompactDay={date:string;scores:HourlyHistoricalScoreRow[];dailyScores:HourlyHistoricalScoreRow[];hourly:Record<string,any[]>;daily:Record<string,any>;yesterday:any|null};
 type Archive={available:boolean;days:CompactDay[];filesRejected:number;boundedRead:boolean;filesChecked:number;today:string};
-const cache=new WeakMap<object,{until:number;today:string;value:Promise<Archive>}>();
+const cache=new WeakMap<object,Map<number,{until:number;today:string;value:Promise<Archive>}>>();
 export const matchesReliabilityHorizon=(milliseconds:number,h:Horizon)=>Number.isFinite(milliseconds)&&milliseconds>=h.min*HOUR&&(h.max===360?milliseconds<=h.max*HOUR:milliseconds<h.max*HOUR);
 
 /** Une prévision par modèle, variable et validité : dernière réception admissible,
@@ -65,30 +58,35 @@ function dailyGroups(pairs:any[]){
  const groups=new Map<string,any[]>();for(const p of pairs){const k=[p.serviceName,p.modelId,p.variable,p.horizonBucket].join('|');groups.set(k,[...(groups.get(k)??[]),p]);}
  return Array.from(groups.values()).map(rows=>{const p=rows[0],errors=rows.map(r=>r.forecastValue-r.observedValue);return {serviceName:p.serviceName,modelId:p.modelId,variable:p.variable,horizonBucket:p.horizonBucket,unit:p.variable.startsWith('temperature')?'°C':p.variable==='precipitation_sum'?'mm':'km/h',mae:mean(errors.map(Math.abs)),rmse:Math.sqrt(mean(errors.map(v=>v*v))!),bias:mean(errors),pairCount:rows.length,evaluatedDays:1,validDates:[p.validDate]};});
 }
-function emptyYesterday(date:string){return {status:'unavailable',reason:'Aucune journée physique qualifiée et vérifiée n’est disponible pour hier.',locationKey:LOCATION,validDate:date,validFromAt:getDailyForecastValidTime(shift(date,-1)),validToAt:getDailyForecastValidTime(date),timezone:'Europe/Paris',forecastRunCount:0,qualifiedSnapshotHours:0,pairs:[] as any[],groups:[] as any[],meteoai:{status:'unavailable',reason:'Aucune sortie fusionnée MeteoAI immuable vérifiée n’est archivée pour cette date.',pairCount:null,groups:[]},issues:[]};}
-async function archive(env:any,now:number):Promise<Archive>{
- const today=getParisDateAndHour(now)!.date,existing=cache.get(env.DB);
+function emptyYesterday(date:string){return {status:'unavailable',reason:'Aucune journée physique qualifiée et vérifiée n’est disponible pour hier.',locationKey:LOCATION,validDate:date,validFromAt:getDailyForecastValidTime(shift(date,-1)),validToAt:getDailyForecastValidTime(date),timezone:'Europe/Paris',forecastRunCount:0,qualifiedSnapshotHours:0,pairs:[] as any[],groups:[] as any[],meteoai:{status:'unavailable',reason:'La comparaison de la fusion n’a pas pu être évaluée pour cette date.',pairCount:null,groups:[]},issues:[]};}
+async function archive(env:any,now:number,daysBack:number):Promise<Archive>{
+ const today=getParisDateAndHour(now)!.date;
+ let windows=cache.get(env.DB);if(!windows){windows=new Map();cache.set(env.DB,windows);}
+ const existing=windows.get(daysBack);
  if(existing&&existing.until>now&&existing.today===today)return existing.value;
  // Chaque lecteur reçoit la même promesse protégée, y compris pendant une panne.
  // Une ancienne lecture ne doit pas invalider une entrée de cache plus récente.
- const discard=()=>{if(cache.get(env.DB)?.value===value)cache.delete(env.DB);};
- const value:Promise<Archive>=(async()=>{const days:CompactDay[]=[];const read=await scanVerifiedLearningDays(env,now,p=>days.push(compactDay(p,today)));return {...read,available:true,days};})().then(
+ const discard=()=>{if(windows.get(daysBack)?.value===value)windows.delete(daysBack);};
+ const value:Promise<Archive>=(async()=>{const days:CompactDay[]=[];const read=await scanVerifiedLearningDays(env,now,p=>days.push(compactDay(p,today)),{startDate:shift(today,-daysBack),endDate:shift(today,-1)});return {...read,available:true,days};})().then(
   result=>{if(result.filesRejected||result.boundedRead)discard();return result;},
   ()=>{discard();return {available:false,days:[],filesRejected:0,filesChecked:0,boundedRead:false,today};}
  );
- cache.set(env.DB,{until:now+5*60000,today,value});
+ windows.set(daysBack,{until:now+5*60000,today,value});
  return value;
 }
-export function buildReliabilityReadModel(input:any,a:Archive,now:number){
+export function buildReliabilityReadModel(input:any,a:Archive,now:number,trendArchive:Archive=a){
  const period=input?.period??'7d',horizon=RELIABILITY_HORIZONS.find(h=>h.id===(input?.horizon??'6-24h'));
  if(!Object.hasOwn(periods,period)||!horizon)throw new ApiError('Période ou horizon de fiabilité invalide.');
  const startDate=shift(a.today,-periods[period]),endDate=shift(a.today,-1),scoped=a.days.filter(d=>d.date>=startDate&&d.date<=endDate);
  const complete=a.available&&!a.filesRejected&&!a.boundedRead;
+ const trendComplete=trendArchive.available&&!trendArchive.filesRejected&&!trendArchive.boundedRead;
+ const trendRows=trendArchive.days.flatMap(d=>d.scores);
  const rows=a.days.flatMap(d=>d.scores),dailyRows=a.days.flatMap(d=>d.dailyScores);
  const summarize=(model:any,variable:string,h:string,source=rows)=>summarizeHourlyHistoricalEvidence(source,{modelName:model.name,modelId:model.modelId,variable,horizonBucket:h,beforeDate:a.today,periodStartDate:startDate,historyAvailable:a.available});
  const metrics=OFFICIAL_HOURLY_MODELS.flatMap(model=>variables.map(([variable,variableLabel,unit])=>{
   const s=summarize(model,variable,horizon.id),qualified=s.status==='qualified'&&complete;
-  return {...s,modelId:model.modelId,variableLabel,unit,horizonId:horizon.id,horizonLabel:horizon.label,status:!a.available?'history_unavailable':!complete&&s.metrics?'incomplete_metrics':s.status,reason:!a.available?'Les archives vérifiées ne peuvent pas être lues.':!complete?'Lecture partielle ou fichier rejeté : aucune qualification n’est publiée.':s.status==='no_evidence'?(variable==='wind_speed'||variable==='wind_gust'?'La hauteur et la période de mesure des capteurs publics ne sont pas documentées : aucune comparaison à 10 m n’est qualifiée.':variable==='rain_liquid_1h'?'Aucune comparaison vérifiée sur une même fenêtre de pluie liquide de 60 minutes, avec prévision reçue avant son début.':variable==='pressure_msl'?'Aucune comparaison vérifiée avec au moins trois pressions au niveau de la mer mesurées à moins de cinq minutes de la même échéance.':'Aucune comparaison vérifiée pour ce modèle, cette variable et cette échéance.'):s.status==='insufficient_evidence'?`Seuil non atteint : ${s.metrics!.comparisonCount}/30 comparaisons, ${s.metrics!.evaluatedDays}/7 dates distinctes.`:null,metrics:qualified?s.metrics:null,rawMetrics:s.metrics,rawValidated:true,legacyUnversionedRowCount:0,trend:complete?s.trend:{...s.trend,status:'history_unavailable',delta:null}};
+  const trend=summarizeHourlyHistoricalEvidence(trendRows,{modelName:model.name,modelId:model.modelId,variable,horizonBucket:horizon.id,beforeDate:a.today,historyAvailable:trendArchive.available}).trend;
+  return {...s,modelId:model.modelId,variableLabel,unit,horizonId:horizon.id,horizonLabel:horizon.label,status:!a.available?'history_unavailable':!complete&&s.metrics?'incomplete_metrics':s.status,reason:!a.available?'Les archives vérifiées ne peuvent pas être lues.':!complete?'Lecture partielle ou fichier rejeté dans la période sélectionnée : aucune qualification n’est publiée.':s.status==='no_evidence'?(variable==='wind_speed'||variable==='wind_gust'?'La hauteur et la période de mesure des capteurs publics ne sont pas documentées : aucune comparaison à 10 m n’est qualifiée.':variable==='rain_liquid_1h'?'Aucune comparaison vérifiée sur une même fenêtre de pluie liquide de 60 minutes, avec prévision reçue avant son début.':variable==='pressure_msl'?'Aucune comparaison vérifiée avec au moins trois pressions au niveau de la mer mesurées à moins de cinq minutes de la même échéance.':'Aucune comparaison vérifiée pour ce modèle, cette variable et cette échéance.'):s.status==='insufficient_evidence'?`Seuil non atteint : ${s.metrics!.comparisonCount}/30 comparaisons, ${s.metrics!.evaluatedDays}/7 dates distinctes.`:null,metrics:qualified?s.metrics:null,rawMetrics:s.metrics,rawValidated:true,legacyUnversionedRowCount:0,trend:trendComplete?trend:{...trend,status:'history_unavailable',delta:null,reason:'Évolution indisponible : lecture partielle ou indisponible des fenêtres de tendance, distinctes de la période sélectionnée.'}};
  }));
  const note=(source:HourlyHistoricalScoreRow[],keys:string[])=>{
   const qualified=complete?OFFICIAL_HOURLY_MODELS.flatMap(m=>keys.map(v=>summarize(m,v,horizon.id,source))).filter(s=>s.status==='qualified'&&s.metrics):[];
@@ -110,20 +108,23 @@ export function buildReliabilityReadModel(input:any,a:Archive,now:number){
   evidence:{status:a.available?'available':'history_unavailable',source:'signed_learning_days',expectedModelCount:models.size,includedModels:Array.from(models.keys()),bestMatchIncluded:false,variables:variables.map(([key,label,unit])=>({key,label,unit})),...PUBLIC_RANKING_EVIDENCE_THRESHOLDS,recomputedScoreRows:scoped.reduce((n,d)=>n+d.scores.length,0),note:'Archives serveur signées, journées closes Europe/Paris. Les métriques brutes restent visibles avant qualification. Notes indicatives limitées aux températures, calculées seulement sur des cellules qualifiées ; les modèles ont le même poids dans cette synthèse. Les échéances horaires partent du cycle fournisseur ; les échéances quotidiennes vont de la disponibilité à la fin du jour local. Les historiques récupérés non qualifiés restent conservés séparément.',filesChecked:a.filesChecked,filesRejected:a.filesRejected,boundedRead:a.boundedRead},
   metrics,horizonEvidence:RELIABILITY_HORIZONS.map(h=>{const cells=OFFICIAL_HOURLY_MODELS.flatMap(m=>variables.map(([v])=>summarize(m,v,h.id)));return {id:h.id,label:h.label,status:a.available?'available':'history_unavailable',expectedCellCount:models.size*variables.length,qualifiedCellCount:complete?cells.filter(s=>s.status==='qualified').length:0,rawEvidenceCellCount:cells.filter(s=>s.metrics).length};}),
   notes:{hourly:note(rows,['temperature']),daily:note(dailyRows,['temperature_max','temperature_min']),provisionalHourly:provisional(rows,['temperature']),complete},
+  trendEvidence:{complete:trendComplete,filesChecked:trendArchive.filesChecked,filesRejected:trendArchive.filesRejected,boundedRead:trendArchive.boundedRead},
   comparisons:{hourly:hourlyPoints,daily:dailyPoints,basis:'Moyenne des modèles archivés appariés, sans recalcul de la fusion officielle',hourlyWindow:periods[period]===1?'Dernière journée close':'Deux dernières journées closes, dans la période choisie',periodLabel:`${startDate} → ${endDate} · ${horizon.label}`},
   availability:{history:!a.available?'Historique indisponible':!complete?'Historique partiel : qualification suspendue':'Historique vérifié lisible',dailyHorizon:'Minima et maxima quotidiens : disponibilité de la prévision vers la fin du jour local.',selectedHorizon:'Fenêtre exacte recalculée depuis les comparaisons vérifiées, sans bucket voisin.',trend:'Évolution par modèle : 30 dernières journées closes contre les 30 précédentes, explicitement séparées de la période principale.',recompute:'Recalcul en lecture seule : aucune collecte, aucun doublon et aucune écriture.'}};
 }
 export async function readReliability(input:any,env:any,now=Date.now()){
  if(!Object.hasOwn(periods,input?.period??'7d')||!RELIABILITY_HORIZONS.some(h=>h.id===(input?.horizon??'6-24h')))throw new ApiError('Période ou horizon de fiabilité invalide.');
  const coords=coordinates(input),covered=coords.lat===50.7567&&coords.lon===2.5204;
- const a=covered?await archive(env,now):{available:false,days:[],filesRejected:0,filesChecked:0,boundedRead:false,today:getParisDateAndHour(now)!.date};
- const result=buildReliabilityReadModel(input,a,now);
+ const empty={available:false,days:[],filesRejected:0,filesChecked:0,boundedRead:false,today:getParisDateAndHour(now)!.date};
+ const [a,trend]=covered?await Promise.all([archive(env,now,periods[input?.period??'7d']),archive(env,now,60)]):[empty,empty];
+ const result=buildReliabilityReadModel(input,a,now,trend);
  if(!covered){result.locationKey=coords.lat.toFixed(3)+'_'+coords.lon.toFixed(3);result.availability.history='Aucune archive vérifiée pour ce lieu ; Hondeghem n’est jamais utilisé en remplacement.';}
  return result;
 }
 export async function readReliabilityYesterday(input:any,env:any,now=Date.now()){
  const coords=coordinates(input),date=shift(getParisDateAndHour(now)!.date,-1),empty=emptyYesterday(date);
  if(coords.lat!==50.7567||coords.lon!==2.5204)return {...empty,locationKey:coords.lat.toFixed(3)+'_'+coords.lon.toFixed(3),reason:'Aucune archive vérifiée pour ce lieu.'};
- const a=await archive(env,now);if(!a.available)return {...empty,reason:'Les archives de comparaison ne peuvent pas être lues.'};
- return a.days.find(d=>d.date===date)?.yesterday??empty;
+ const a=await archive(env,now,1);if(!a.available)return {...empty,reason:'Les archives de comparaison ne peuvent pas être lues.'};
+ const result=a.days.find(d=>d.date===date)?.yesterday??empty;
+ return {...result,meteoai:await readFusionVerificationStatus(date,env,now)};
 }

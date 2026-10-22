@@ -12,3 +12,12 @@ it('affiche une erreur provisoire avec son effectif sans fabriquer une note sur 
   const empty=renderToStaticMarkup(React.createElement(ReliabilityNotesSummary,{data:{...data,notes:{...data.notes,provisionalHourly:{...data.notes.provisionalHourly,mae:null}}}}));expect(empty).not.toContain('Erreur horaire provisoire');
  }finally{vi.unstubAllGlobals();}
 });
+
+it('accorde le singulier d’une comparaison, d’une date et d’un modèle',()=>{
+ vi.stubGlobal('React',React);
+ try{
+  const data={evidence:{status:'available',expectedModelCount:7},selectedHorizon:{exactWindow:true,label:'6–24 h'},period:{startDate:'2026-10-16',endDate:'2026-10-16'},notes:{complete:true,hourly:{mae:null,comparisonCount:0,evaluatedDays:0,qualifiedCells:0},daily:{mae:null,comparisonCount:0,evaluatedDays:0,qualifiedCells:0},provisionalHourly:{mae:1,comparisonCount:1,evaluatedDays:1,modelCount:1,partialArchive:false}}};
+  const html=renderToStaticMarkup(React.createElement(ReliabilityNotesSummary,{data}));
+  expect(html).toContain('1 date');expect(html).toContain('1 modèle.');expect(html).not.toContain('1 dates');expect(html).not.toContain('1 modèles');expect(html).toContain('1 comparaison');
+ }finally{vi.unstubAllGlobals();}
+});

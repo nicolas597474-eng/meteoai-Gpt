@@ -6,11 +6,11 @@ import {resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {archiveTestContext} from './archive-test-context.mjs';
 import worker from '../dist/server/index.js';
-const bundle=await build({stdin:{contents:"export * from './worker/reliability';export * from './worker/learning-store';export {recordLearningProviderRun} from './worker/learning-provider-runs';export {recordServerObservations} from './worker/server-observations';export {finalizePhysicalReferences} from './worker/physical-reference-store';",resolveDir:process.cwd()},bundle:true,platform:'node',format:'esm',write:false,plugins:[{name:'station-kind',setup(b){b.onResolve({filter:/^\.\/stationService$/},a=>a.importer.endsWith('dailyForecastVerification.ts')?{path:resolve('worker/station-kind.ts')}:undefined);}}]});
+const bundle=await build({stdin:{contents:"export * from './worker/reliability';export * from './worker/learning-store';export {recordFusionSnapshot} from './worker/fusion-snapshots';export {readFusionVerificationStatus} from './worker/fusion-verification';export {recordLearningProviderRun} from './worker/learning-provider-runs';export {recordServerObservations} from './worker/server-observations';export {finalizePhysicalReferences} from './worker/physical-reference-store';",resolveDir:process.cwd()},bundle:true,platform:'node',format:'esm',write:false,plugins:[{name:'station-kind',setup(b){b.onResolve({filter:/^\.\/stationService$/},a=>a.importer.endsWith('dailyForecastVerification.ts')?{path:resolve('worker/station-kind.ts')}:undefined);}}]});
 await writeFile('qa/reliability-test-bundle.mjs',bundle.outputFiles[0].text);
 const api=await import(pathToFileURL(resolve('qa/reliability-test-bundle.mjs')).href);
 const HOUR=3600000,DAY=24*HOUR,coords={lat:50.7567,lon:2.5204},now=Date.parse('2026-10-17T03:00:00Z');
-async function context(){const c=await archiveTestContext();for(const tag of ['0005_lush_micromax','0006_young_marvel_zombies','0007_tense_thor','0008_motionless_amphibian','0009_white_crusher_hogan'])c.db.exec(await readFile('drizzle/'+tag+'.sql','utf8'));c.env.NETATMO_ENCRYPTION_KEY=Buffer.alloc(32,11).toString('base64');return c;}
+async function context(){const c=await archiveTestContext();for(const tag of ['0003_glamorous_silvermane','0005_lush_micromax','0006_young_marvel_zombies','0007_tense_thor','0008_motionless_amphibian','0009_white_crusher_hogan','0010_black_roughhouse'])c.db.exec(await readFile('drizzle/'+tag+'.sql','utf8'));c.env.NETATMO_ENCRYPTION_KEY=Buffer.alloc(32,11).toString('base64');return c;}
 async function seed(c,date){
  const day=Date.parse(date+'T00:00:00Z'),run=day-6*HOUR,available=run+5*HOUR+60000;
  const values=Array.from({length:18},(_,i)=>{const validTime=day+(i+1)*HOUR;return {captureRunId:'AROME-'+run,locationKey:'50.757_2.520',targetDate:date,modelName:'AROME',modelId:'meteofrance_arome_france_hd',metadataAvailableAt:run+4*HOUR,providerRunAt:run,requestStartedAt:available-60000,availableAt:available,validTime,forecastLeadTimeMilliseconds:validTime-run,collectionLatencyMilliseconds:available-run,variable:'temperature',value:1,unit:'°C'};});
@@ -41,7 +41,7 @@ test('lectures simultanées : panne partagée sans fuite technique, puis reprise
    api.readReliability({...coords,period:'365d'},c.env,now),
    api.readReliabilityYesterday(coords,c.env,now),
   ]);
-  assert.equal(attempts,1,'Une seule lecture du stockage pour les appels simultanés');
+  assert.equal(attempts,4,'Une lecture par fenêtre distincte ; la tendance de 60 jours est partagée');
   assert(results.slice(0,2).every(r=>r.evidence.status==='history_unavailable'));
   assert.equal(results[2].status,'unavailable');
   assert(!JSON.stringify(results).includes('SQL confidentiel'));
@@ -61,11 +61,75 @@ test('lectures simultanées réussies : cache commun et périodes indépendantes
    api.readReliability({...coords,period:'365d'},c.env,now),
    api.readReliabilityYesterday(coords,c.env,now),
   ]);
-  assert.equal(attempts,1);
+  assert.equal(attempts,5,'Quatre fenêtres distinctes et une lecture des traces de fusion');
   assert.equal(week.evidence.status,'available');assert.equal(year.evidence.status,'available');
   assert.equal(week.comparisons.daily.length,7);assert.equal(year.comparisons.daily.length,365);
   assert.equal(yesterday.validDate,'2026-10-16');
-  await api.readReliability(coords,c.env,now+1);assert.equal(attempts,1);
+  await api.readReliability(coords,c.env,now+1);assert.equal(attempts,5,'Les fenêtres et la tendance partagée restent en cache');
+ }finally{c.db.close();}
+});
+
+test('fichier rejeté hors période : la semaine reste qualifiée et seule la tendance concernée est suspendue',async()=>{
+ const c=await context();try{
+  for(let day=10;day<=16;day++)await seed(c,'2026-10-'+day);
+  const key='learning/days/'+'a'.repeat(64)+'.json';c.objects.set(key,'corrupt fixture');
+  c.db.prepare('INSERT INTO weather_learning_days(id,location_key,valid_date,created_at,source_digest,coverage_hours,score_count,object_key,digest) VALUES (?,?,?,?,?,?,?,?,?)').run('50.757_2.520/2026-09-01','50.757_2.520','2026-09-01',now-1000,'b'.repeat(64),18,1,key,'a'.repeat(64));
+  const week=await api.readReliability({...coords,period:'7d'},c.env,now),temp=week.metrics.find(r=>r.modelName==='AROME'&&r.variable==='temperature');
+  assert.equal(temp.status,'qualified');assert.equal(temp.metrics.evaluatedDays,7);assert.equal(week.notes.hourly.mae,1);assert.equal(week.notes.complete,true);
+  assert.equal(week.evidence.filesChecked,7);assert.equal(week.evidence.filesRejected,0);
+  assert.equal(week.trendEvidence.complete,false);assert.equal(week.trendEvidence.filesRejected,1);assert.equal(temp.trend.delta,null);assert.match(temp.trend.reason,/fenêtres de tendance/);
+  const year=await api.readReliability({...coords,period:'365d'},c.env,now);
+  assert.equal(year.evidence.filesRejected,1);assert.equal(year.notes.complete,false);assert.equal(year.notes.hourly.mae,null);
+  assert.equal(year.metrics.find(r=>r.modelName==='AROME'&&r.variable==='temperature').metrics,null,'Le rejet à l’intérieur de la sélection reste bloquant');
+ }finally{c.db.close();}
+});
+
+test('bornes continues : chaque demi-heure jusqu’à quinze jours correspond exactement à une fenêtre',()=>{
+ for(let milliseconds=0;milliseconds<=360*HOUR;milliseconds+=HOUR/2){
+  assert.equal(api.RELIABILITY_HORIZONS.filter(h=>api.matchesReliabilityHorizon(milliseconds,h)).length,1,'Couverture unique à '+milliseconds);
+ }
+ for(const h of api.RELIABILITY_HORIZONS.slice(0,-1)){
+  assert.equal(api.RELIABILITY_HORIZONS.filter(w=>api.matchesReliabilityHorizon(h.max*HOUR-1,w)).length,1);
+  assert.equal(api.RELIABILITY_HORIZONS.filter(w=>api.matchesReliabilityHorizon(h.max*HOUR,w)).length,1);
+ }
+ for(const value of [-1,360*HOUR+1,NaN,Infinity])assert.equal(api.RELIABILITY_HORIZONS.some(h=>api.matchesReliabilityHorizon(value,h)),false);
+ for(const value of [84,180,252])assert.equal(api.RELIABILITY_HORIZONS.filter(h=>api.matchesReliabilityHorizon(value*HOUR,h)).length,1);
+});
+
+test('lecture de tendance partielle : une période courte vérifiée conserve sa qualification',()=>{
+ const days=Array.from({length:7},(_,i)=>({date:'2026-10-'+(10+i),scores:[{date:'2026-10-'+(10+i),sourceName:'open-meteo',modelName:'AROME',modelId:'meteofrance_arome_france_hd',variable:'temperature',horizonBucket:'6-24h',sampleSize:5,mae:1,rmse:1,bias:0,computedAt:now-1}],dailyScores:[],hourly:{'6-24h':[]},daily:{},yesterday:null}));
+ const base={available:true,days,filesRejected:0,boundedRead:false,filesChecked:7,today:'2026-10-17'};
+ for(const trend of [{...base,boundedRead:true},{...base,available:false},{...base,filesRejected:1}]){
+  const result=api.buildReliabilityReadModel({period:'7d',horizon:'6-24h'},base,now,trend);
+  assert.equal(result.notes.complete,true);assert.equal(result.notes.hourly.mae,1);assert.equal(result.metrics[0].status,'qualified');assert.equal(result.trendEvidence.complete,false);assert.equal(result.metrics[0].trend.delta,null);
+ }
+});
+
+test('fusion : recherche effective des traces, cache commun et absence distincte d’un diagnostic non admissible',async()=>{
+ const c=await context();try{
+  const missing=await api.readFusionVerificationStatus('2026-10-15',c.env,now);assert.equal(missing.reasonCode,'no_verified_trace');assert.equal(missing.diagnostic.traceFound,false);
+  const at=Date.parse('2026-10-16T12:00:00Z'),sources=[{name:'AROME',finalWeight:1}];
+  await api.recordFusionSnapshot({...coords,date:'2026-10-16',computedAt:new Date(at).toISOString(),values:{tempMax:12,tempMin:6,precipitation:1,windSpeed:10},trace:{parameterSources:{tempMax:sources,precipitation:sources,windSpeed:sources}}},c.env,at);
+  const changes=c.db.prepare('SELECT total_changes() AS n').get().n;
+  const originalPrepare=c.env.DB.prepare.bind(c.env.DB);let reads=0;
+  c.env.DB.prepare=(...args)=>{reads++;return originalPrepare(...args);};
+  const [a,b]=await Promise.all([api.readFusionVerificationStatus('2026-10-16',c.env,now),api.readFusionVerificationStatus('2026-10-16',c.env,now)]);
+  assert.equal(reads,1);assert.equal(a,b);assert.equal(a.status,'unavailable');assert.equal(a.reasonCode,'diagnostic_trace_only');assert.equal(a.diagnostic.traceFound,true);assert.equal(a.pairCount,null);assert.deepEqual(a.groups,[]);assert.match(a.reason,/non qualifié/);
+  const yesterday=await api.readReliabilityYesterday(coords,c.env,now);assert.equal(yesterday.meteoai.reasonCode,'diagnostic_trace_only');
+  assert.equal(c.db.prepare('SELECT total_changes() AS n').get().n,changes);
+  assert(!JSON.stringify(yesterday.meteoai).includes('signature'));assert(!JSON.stringify(yesterday.meteoai).includes('finalWeight'));
+ }finally{c.db.close();}
+});
+
+test('fusion : rejet d’intégrité et panne ne prétendent pas établir une absence de trace',async()=>{
+ const c=await context();try{
+  const at=Date.parse('2026-10-16T12:00:00Z'),sources=[{name:'AROME',finalWeight:1}];
+  await api.recordFusionSnapshot({...coords,date:'2026-10-16',computedAt:new Date(at).toISOString(),values:{tempMax:12},trace:{parameterSources:{tempMax:sources,precipitation:[],windSpeed:[]}}},c.env,at);
+  const row=c.db.prepare('SELECT object_key FROM weather_fusion_snapshots').get(),body=c.objects.get(row.object_key);c.objects.set(row.object_key,body+' ');
+  const rejected=await api.readFusionVerificationStatus('2026-10-16',c.env,now);assert.equal(rejected.reasonCode,'trace_integrity_error');assert.equal(rejected.diagnostic.filesRejected,1);
+  c.objects.set(row.object_key,body);assert.equal((await api.readFusionVerificationStatus('2026-10-16',c.env,now+1)).reasonCode,'diagnostic_trace_only');
+  const env={DB:{prepare(){throw Error('private fixture database message');}}};
+  const failed=await api.readFusionVerificationStatus('2026-10-16',env,now);assert.equal(failed.reasonCode,'history_unavailable');assert(!JSON.stringify(failed).includes('private fixture'));
  }finally{c.db.close();}
 });
 test('vrais fichiers signés : 7 dates, filtres exacts, qualification, graphiques et absence d’écritures',async()=>{

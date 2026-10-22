@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
-import { meanAbsoluteDeltaC, qualifiedReliabilityNote, ReliabilityNotesSummary, VariableEvidenceSection } from "./ReliabilityEvidenceSections";
+import { meanAbsoluteDeltaC, qualifiedReliabilityNote, ReliabilityNotesSummary, VariableEvidenceSection, metric, signedMetric } from "./ReliabilityEvidenceSections";
+import {physicalStationCount} from './ReliabilityComparisonSections';
 import { createElement } from "react";
 import * as React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
@@ -21,6 +22,16 @@ describe("meanAbsoluteDeltaC", () => {
       { stationTemperature: Number.NaN, officialTemperature: 4 },
     ])).toBeNull();
   });
+});
+
+it('arrondit le zéro sans signe et conserve les signes des écarts significatifs',()=>{
+ for(const value of [-0,-0.004,0,0.004]){expect(signedMetric(value,'°C',2)).toBe('0.00 °C');expect(metric(value,'°C',2)).toBe('0.00 °C');}
+ expect(signedMetric(-0.006,'°C',2)).toBe('-0.01 °C');expect(signedMetric(0.006,'°C',2)).toBe('+0.01 °C');expect(signedMetric(null)).toBe('—');
+});
+
+it('compte les stations distinctes même lorsqu’une station fournit plusieurs relevés',()=>{
+ expect(physicalStationCount([{stationId:'a',stationName:'A'},{stationId:'a',stationName:'A'},{stationId:'b',stationName:'B'}])).toBe(2);
+ expect(physicalStationCount([])).toBe(0);
 });
 
 describe("notes qualifiées", () => {
