@@ -2,22 +2,14 @@ import {it,expect,vi} from 'vitest';
 import * as React from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
 import {ReliabilityNotesSummary} from './ReliabilityEvidenceSections';
-
-it('affiche une erreur provisoire avec son effectif sans fabriquer une note sur dix',()=>{
- vi.stubGlobal('React',React);
- try{
-  const data={evidence:{status:'available',expectedModelCount:7},selectedHorizon:{exactWindow:true,label:'6–24 h'},period:{startDate:'2026-10-10',endDate:'2026-10-16'},notes:{complete:false,hourly:{mae:null,comparisonCount:0,evaluatedDays:0,qualifiedCells:0},daily:{mae:null,comparisonCount:0,evaluatedDays:0,qualifiedCells:0},provisionalHourly:{mae:1.25,comparisonCount:6,evaluatedDays:2,modelCount:2,partialArchive:true}}};
-  const html=renderToStaticMarkup(React.createElement(ReliabilityNotesSummary,{data}));
-  expect(html).toContain('Erreur horaire provisoire');expect(html).toContain('1.25 °C');expect(html).toContain('6 comparaisons');expect(html).toContain('2 dates');expect(html).toContain('2 modèles');expect(html).toContain('Lecture partielle');expect(html).not.toContain('>Fiable<');
-  const empty=renderToStaticMarkup(React.createElement(ReliabilityNotesSummary,{data:{...data,notes:{...data.notes,provisionalHourly:{...data.notes.provisionalHourly,mae:null}}}}));expect(empty).not.toContain('Erreur horaire provisoire');
- }finally{vi.unstubAllGlobals();}
+import {summarizeMeteoAIReliability,type MeteoAIPair} from '@shared/meteoaiReliability';
+const pair=(date:string,kind:'hourly'|'daily',forecast:number):MeteoAIPair=>({date,kind,variable:kind==='hourly'?'temperature':'temperature_max',validAt:1,availableAt:0,observedAt:2,forecast,observed:10});
+const render=(history:any)=>{vi.stubGlobal('React',React);try{return renderToStaticMarkup(React.createElement(ReliabilityNotesSummary,{data:{meteoaiReliability:history,notes:{hourly:{mae:0,qualifiedCells:7}},selectedHorizon:{label:'6–24 h'}}}));}finally{vi.unstubAllGlobals();}};
+it('affiche une vraie note MeteoAI provisoire sur deux jours, sans moyenne des modèles',()=>{
+ const history=summarizeMeteoAIReliability([{date:'2026-10-19',pairs:[pair('2026-10-19','hourly',11)]},{date:'2026-10-20',pairs:[pair('2026-10-20','hourly',12)]}]);
+ const html=render(history);expect(html).toContain('7,0');expect(html).toContain('Provisoire');expect(html).toContain('2 comparaisons');expect(html).toContain('2 jours');expect(html).toContain('Globale partielle');expect(html).not.toContain('Moyenne des MAE');expect(html).toContain('Tout l’historique MeteoAI disponible');
 });
-
-it('accorde le singulier d’une comparaison, d’une date et d’un modèle',()=>{
- vi.stubGlobal('React',React);
- try{
-  const data={evidence:{status:'available',expectedModelCount:7},selectedHorizon:{exactWindow:true,label:'6–24 h'},period:{startDate:'2026-10-16',endDate:'2026-10-16'},notes:{complete:true,hourly:{mae:null,comparisonCount:0,evaluatedDays:0,qualifiedCells:0},daily:{mae:null,comparisonCount:0,evaluatedDays:0,qualifiedCells:0},provisionalHourly:{mae:1,comparisonCount:1,evaluatedDays:1,modelCount:1,partialArchive:false}}};
-  const html=renderToStaticMarkup(React.createElement(ReliabilityNotesSummary,{data}));
-  expect(html).toContain('1 date');expect(html).toContain('1 modèle.');expect(html).not.toContain('1 dates');expect(html).not.toContain('1 modèles');expect(html).toContain('1 comparaison');
- }finally{vi.unstubAllGlobals();}
+it('ne transforme pas l’ancien score des modèles en note MeteoAI et distingue le singulier',()=>{
+ const empty=render(summarizeMeteoAIReliability([]));expect(empty).not.toContain('10,0');expect(empty).toContain('Non disponible');
+ const one=render(summarizeMeteoAIReliability([{date:'2026-10-20',pairs:[pair('2026-10-20','daily',11)]}]));expect(one).toContain('1 comparaison');expect(one).toContain('1 jour');expect(one).not.toContain('1 jours');expect(one).toContain('quotidiennes uniquement');
 });

@@ -2,6 +2,7 @@ import {HONDEGHEM} from '../server/weatherServices';
 import {LEARNING_COLLECTION_CHANNEL,recordLearningForecast,readLearningHistory,finalizeLearningDays,readSigned} from './learning-store';
 import {collectLearningProviderRuns} from './learning-provider-runs';
 import {collectDailyForecastBatch,deriveDailyFromVerifiedCycles,mergeDailySources} from './daily-forecast-collection';
+import {finalizeMeteoAIHistory} from './meteoai-history';
 
 let refresh:Promise<any>|undefined;
 /** Reprise partagée à la consultation ; les baux SQL empêchent les doubles collectes. */
@@ -13,6 +14,7 @@ export function refreshQualifiedLearning(env:any){
   const providerCollection=await collectLearningProviderRuns(env).catch(()=>({attempted:false,status:'failed',stored:0}));
   const collection=await collectLearningForecasts(env).catch(()=>({attempted:false,status:'failed',stored:false}));
   const qualification=await finalizeLearningDays(env).catch(()=>({available:false,status:'failed',stored:0})),history=await readLearningHistory(env);
+  await finalizeMeteoAIHistory(env).catch(()=>console.warn('Comparaisons MeteoAI indisponibles ; archives conservées.'));
   return {available:true,collection,providerCollection,qualification,qualifiedDays:history.qualifiedDays,scoreCount:history.scoreCount,qualifiedGroups:history.qualifiedGroups,providerRunCount:history.providerRunCount};
  })().finally(()=>{refresh=undefined;});return refresh;
 }

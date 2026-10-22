@@ -41,7 +41,7 @@ test('lectures simultanées : panne partagée sans fuite technique, puis reprise
    api.readReliability({...coords,period:'365d'},c.env,now),
    api.readReliabilityYesterday(coords,c.env,now),
   ]);
-  assert.equal(attempts,4,'Une lecture par fenêtre distincte ; la tendance de 60 jours est partagée');
+  assert.equal(attempts,6,'Fenêtres distinctes et reprise immédiate du lecteur MeteoAI après chaque panne');
   assert(results.slice(0,2).every(r=>r.evidence.status==='history_unavailable'));
   assert.equal(results[2].status,'unavailable');
   assert(!JSON.stringify(results).includes('SQL confidentiel'));
@@ -61,11 +61,11 @@ test('lectures simultanées réussies : cache commun et périodes indépendantes
    api.readReliability({...coords,period:'365d'},c.env,now),
    api.readReliabilityYesterday(coords,c.env,now),
   ]);
-  assert.equal(attempts,5,'Quatre fenêtres distinctes et une lecture des traces de fusion');
+  assert.equal(attempts,6,'Quatre fenêtres, traces de fusion et contrôle de l’index MeteoAI');
   assert.equal(week.evidence.status,'available');assert.equal(year.evidence.status,'available');
   assert.equal(week.comparisons.daily.length,7);assert.equal(year.comparisons.daily.length,365);
   assert.equal(yesterday.validDate,'2026-10-16');
-  await api.readReliability(coords,c.env,now+1);assert.equal(attempts,5,'Les fenêtres et la tendance partagée restent en cache');
+  await api.readReliability(coords,c.env,now+1);assert.equal(attempts,6,'Les fenêtres, la tendance et le lecteur MeteoAI restent en cache');
  }finally{c.db.close();}
 });
 

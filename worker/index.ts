@@ -1,4 +1,5 @@
 import {readHistoryPage,readReportPage} from './history-pages';
+import {receiveMeteoAIForecast} from './meteoai-receipt';
 import {handleAssistantGemini} from './assistant-gemini';
 import {readWeightHistory,compareSnapshots} from './fusion-snapshots';
 import {recordCollectionJournal} from './collection-journal';
@@ -141,6 +142,7 @@ export default {async fetch(request:Request,env:Env,ctx:any){
  }} as Env;
  const url=new URL(request.url),path=url.pathname;
  try{
+  if(path==='/api/history/meteoai-forecast')return receiveMeteoAIForecast(request,env);
   if(path==='/api/assistant/gemini')return handleAssistantGemini(request,env);
   if(path==='/api/automation/hourly-collection')return handleBackgroundCollection(request,env);
   if(path.startsWith('/api/netatmo/'))return handleNetatmo(request,env);

@@ -50,7 +50,7 @@ describe("notes qualifiées", () => {
     vi.stubGlobal('React', React);
     try {
     const html=renderToStaticMarkup(createElement(ReliabilityNotesSummary,{data:{evidence:{status:'available',expectedModelCount:7},selectedHorizon:{exactWindow:true,label:'6–24 h'},period:{startDate:'2026-10-10',endDate:'2026-10-16'},notes:{hourly:{...cell,comparisonCount:1},daily:{...cell,evaluatedDays:1},complete:true}}}));
-    expect(html).toContain('températures min/max');expect(html).not.toContain('min/max, cumul');
+    expect(html).toContain('Températures min/max');expect(html).not.toContain('min/max, cumul');
     expect(html).toContain('Aucune note n’est inventée');expect(html).not.toContain('Archive non lisible');
     expect(html).not.toContain('>Fiable<');
     } finally { vi.unstubAllGlobals(); }

@@ -246,101 +246,48 @@ export function qualifiedReliabilityNote(cell: any, complete: boolean): number |
 }
 
 export function ReliabilityNotesSummary({ data }: { data: any }) {
-  const available = data.evidence?.status === "available";
-  const evidenceAvailable = available && Boolean(data.selectedHorizon?.exactWindow ?? data.selectedHorizon?.storageBucket);
-  const dateRange = formatDate(data.period?.startDate) + " – " + formatDate(data.period?.endDate);
-  const horizonLabel = data.selectedHorizon?.label ?? "non disponible";
-  const complete = evidenceAvailable && data.notes?.complete === true;
-  const hourlyNote = qualifiedReliabilityNote(data.notes?.hourly, complete);
-  const dailyNote = qualifiedReliabilityNote(data.notes?.daily, complete);
-  const knownNotes = [hourlyNote, dailyNote].filter((note): note is number => note != null);
-  const globalNote = knownNotes.length ? Math.round(knownNotes.reduce((sum, note) => sum + note, 0) / knownNotes.length * 10) / 10 : null;
-  const comparedHours = data.notes?.provisionalHourly?.comparisonCount ?? data.notes?.hourly?.comparisonCount ?? 0;
-  const comparedDays = data.notes?.daily?.evaluatedDays ?? 0;
-  const narrative = !available
-    ? data.availability?.history ?? "L’historique vérifié ne peut pas être lu. Aucune note n’est inventée."
-    : !data.notes?.complete
-      ? "Lecture partielle ou preuve rejetée : les notes restent suspendues jusqu’à une lecture complète."
-      : globalNote == null
-        ? "Les comparaisons ne franchissent pas encore les seuils : 30 paires et 7 dates distinctes par modèle, variable et échéance. Aucune note n’est inventée."
-        : "Synthèse indicative des températures, sur les seules cellules qualifiées. La note horaire mesure la température ; la note quotidienne mesure les minima et maxima. Une note absente reste exclue de la synthèse.";
-
+  const history=data.meteoaiReliability;
+  const trusted=history?.basis==='archived_meteoai_vs_physical_observations' && history.complete===true;
+  const getNote=(cell:any)=>trusted && typeof cell?.note==='number' && Number.isFinite(cell.note) && cell.note>=0 && cell.note<=10 ? cell.note : null;
+  const globalNote=getNote(history?.global),hourlyNote=getNote(history?.hourly),dailyNote=getNote(history?.daily);
+  const status=(cell:any,note:number|null)=>note===null?'Non disponible':cell?.qualified?'Historique consolidé':'Provisoire';
+  const hasDates=history?.startDate&&history?.endDate;
+  const counts=(cell:any)=>String(cell?.comparisonCount??0)+' comparaison'+(cell?.comparisonCount===1?'':'s')+' · '+String(cell?.evaluatedDays??0)+' jour'+(cell?.evaluatedDays===1?'':'s');
   return (
-    <MeteoSurface
-      tone="lab"
-      as="section"
-      className="overflow-hidden rounded-[1.7rem] p-4 sm:p-5"
-      aria-labelledby="reliability-notes-title"
-    >
+    <MeteoSurface tone="lab" as="section" className="overflow-hidden rounded-[1.7rem] p-4 sm:p-5" aria-labelledby="reliability-notes-title">
       <div className="grid items-center gap-5 md:grid-cols-[15rem_minmax(0,1fr)] md:gap-8">
-        <div className="order-1 flex justify-center">
+        <div className="flex justify-center">
           <div className="flex flex-col items-center rounded-2xl border border-sky-400/20 bg-slate-950/30 px-6 py-5 text-center">
-            <p className="font-mono text-5xl font-semibold tracking-tight text-white">
-              {formatNote(globalNote)}
-              <span className="text-xl text-slate-400"> / 10</span>
-            </p>
-            <p className={"mt-2 text-sm font-semibold " + noteToneClass(globalNote)}>{noteLabel(globalNote)}</p>
-            <p className="mt-1 text-[11px] leading-relaxed text-slate-400">
-              Note globale · {horizonLabel} · Températures
-            </p>
+            <p className="font-mono text-5xl font-semibold tracking-tight text-white">{formatNote(globalNote)}<span className="text-xl text-slate-400"> / 10</span></p>
+            <p className={"mt-2 text-sm font-semibold "+noteToneClass(globalNote)}>{status(history?.global,globalNote)}</p>
+            <p className="mt-1 text-[11px] leading-relaxed text-slate-400">Note globale MeteoAI</p>
+            <p className="mt-1 text-[11px] text-slate-400">Prévisions comparées aux observations</p>
           </div>
         </div>
-        <div className="order-2 min-w-0">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="rounded-full border border-sky-400/25 bg-sky-400/8 px-2.5 py-1 text-[11px] font-semibold text-sky-100">
-              <Database className="mr-1 inline h-3 w-3" />
-              {!available ? "Historique indisponible" : !data.notes?.complete ? "Historique partiel" : "Analyse archivée"}
-            </span>
-            <span className="rounded-full border border-slate-700/80 bg-slate-950/30 px-2.5 py-1 text-[11px] text-slate-400">
-              {dateRange} · Synthèse
-            </span>
-            <span className="rounded-full border border-slate-700/80 bg-slate-950/30 px-2.5 py-1 text-[11px] text-slate-400">
-              {comparedHours} comparaison{comparedHours===1?'':'s'} horaire{comparedHours===1?'':'s'} · {comparedDays} date{comparedDays===1?'':'s'} quotidienne{comparedDays===1?'':'s'} qualifiée{comparedDays===1?'':'s'}
-            </span>
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2 text-[11px] text-slate-300">
+            <span className="rounded-full border border-sky-400/25 bg-sky-400/8 px-2.5 py-1"><Database className="mr-1 inline h-3 w-3" />Tout l’historique MeteoAI disponible</span>
+            {hasDates&&<span>{formatDate(history.startDate)} – {formatDate(history.endDate)}</span>}
           </div>
-          <h2 id="reliability-notes-title" className="mt-3 text-xl font-semibold tracking-tight text-white">
-            Notes de fiabilité
-          </h2>
-          <p className="mt-2 max-w-3xl text-sm leading-relaxed text-slate-300">{narrative}</p>
-          {hourlyNote == null && typeof data.notes?.provisionalHourly?.mae === 'number' && Number.isFinite(data.notes.provisionalHourly.mae) && <p className="mt-2 text-sm leading-relaxed text-sky-100" role="status">
-            Erreur horaire provisoire : {metric(data.notes.provisionalHourly.mae, '°C')} · {data.notes.provisionalHourly.comparisonCount} comparaison{data.notes.provisionalHourly.comparisonCount===1?'':'s'} · {data.notes.provisionalHourly.evaluatedDays} date{data.notes.provisionalHourly.evaluatedDays===1?'':'s'} · {data.notes.provisionalHourly.modelCount} modèle{data.notes.provisionalHourly.modelCount===1?'':'s'}. Moyenne des MAE disponibles par modèle, distincte d’une note qualifiée sur 10.
-            {data.notes.provisionalHourly.partialArchive ? ' Lecture partielle : seuls les fichiers vérifiés sont utilisés.' : ' Les heures valides restent utilisables même si leur journée n’atteint pas 18 heures.'}
-          </p>}
+          <h2 id="reliability-notes-title" className="mt-3 text-xl font-semibold tracking-tight text-white">Fiabilité MeteoAI</h2>
+          <p className="mt-2 text-sm leading-relaxed text-slate-300">{history?.reason??'Lecture de l’historique des prévisions MeteoAI…'}</p>
+          {history?.applicationComparisonCount>0&&<p className="mt-2 text-xs text-slate-400">Inclut les prévisions transmises par l’application et horodatées à leur réception serveur. Ces notes descriptives n’activent pas la calibration des modèles.</p>}
+          {globalNote!==null&&!history.global.qualified&&<p className="mt-2 text-sm text-sky-100">La note utilise les comparaisons déjà disponibles, même sur un ou deux jours. Elle reste provisoire : un historique court ne garantit pas la fiabilité à long terme.</p>}
+          {globalNote!==null&&history.global.partial&&<p className="mt-2 text-sm text-amber-100">Globale partielle : {hourlyNote!==null?'prévisions horaires uniquement':'prévisions quotidiennes uniquement'}. La composante manquante ne compte pas comme zéro.</p>}
           <div className="mt-4 grid grid-cols-2 gap-2.5">
-            <article className="rounded-xl border border-slate-700/65 bg-slate-950/30 px-3.5 py-3" aria-label="Note horaire">
-              <p className="font-mono text-2xl font-semibold tabular-nums text-slate-100">
-                {formatNote(hourlyNote)}
-                <span className="text-xs text-slate-400"> / 10</span>
-              </p>
-              <p className={"mt-0.5 text-[11px] font-semibold " + noteToneClass(hourlyNote)}>{noteLabel(hourlyNote)}</p>
-              <p className="mt-1 text-[11px] text-slate-400">Horaire · heure par heure</p>
-            </article>
-            <article className="rounded-xl border border-slate-700/65 bg-slate-950/30 px-3.5 py-3" aria-label="Note quotidienne">
-              <p className="font-mono text-2xl font-semibold tabular-nums text-slate-100">
-                {formatNote(dailyNote)}
-                <span className="text-xs text-slate-400"> / 10</span>
-              </p>
-              <p className={"mt-0.5 text-[11px] font-semibold " + noteToneClass(dailyNote)}>{noteLabel(dailyNote)}</p>
-              <p className="mt-1 text-[11px] text-slate-400">Quotidien · températures min/max</p>
-            </article>
+            {([['hourly','Prévisions horaires',hourlyNote],['daily','Prévisions quotidiennes',dailyNote]] as const).map(([key,label,note])=>(
+              <article key={key} className="rounded-xl border border-slate-700/65 bg-slate-950/30 px-3.5 py-3" aria-label={key==='hourly'?'Note horaire':'Note quotidienne'}>
+                <p className="font-mono text-2xl font-semibold tabular-nums text-slate-100">{formatNote(note)}<span className="text-xs text-slate-400"> / 10</span></p>
+                <p className={"mt-0.5 text-[11px] font-semibold "+noteToneClass(note)}>{status(history?.[key],note)}</p>
+                <p className="mt-1 text-xs text-slate-200">{label} MeteoAI</p>
+                <p className="mt-1 text-[11px] text-slate-400">{key==='hourly'?'Température heure par heure':'Températures min/max'}</p>
+                <p className="mt-2 text-[11px] text-slate-400">{counts(history?.[key])}</p>
+                {typeof history?.[key]?.mae==='number'&&Number.isFinite(history[key].mae)&&<p className="mt-1 text-[11px] text-slate-400">Écart moyen : {metric(history[key].mae,'°C')}</p>}
+              </article>
+            ))}
           </div>
-          <div className="mt-3 flex flex-wrap items-center gap-2">
-            <WeatherStatusBadge
-              compact
-              tone={available ? "success" : "danger"}
-              label="Archive horaire"
-              value={available ? "Lisible" : "Indisponible"}
-            />
-            <span className="text-[11px] text-slate-400">
-              {data.evidence?.expectedModelCount} modèles officiels · unité propre à chaque variable
-            </span>
-          </div>
-          <p className="mt-3 max-w-3xl text-[11px] leading-relaxed text-slate-400">
-            Notes indicatives de température sur 10 : 10 − 2 × MAE (°C), bornées entre 0 et 10. Moyenne à poids égaux des cellules qualifiées ; ce n’est pas une probabilité. Les cumuls de pluie ne sont pas inclus. MAE, RMSE, biais, effectifs, dates et évolution par modèle × variable × horizon exact. Le biais signé est descriptif et n’est jamais appliqué aux prévisions officielles futures.
-          </p>
-          <p className="mt-2 max-w-3xl text-[11px] leading-relaxed text-slate-400">
-            Best Match et les agrégateurs sont exclus. L’accord inter-modèles décrit une dispersion de prévisions et n’est pas une mesure de fiabilité.
-          </p>
+          <p className="mt-3 text-[11px] leading-relaxed text-slate-400">{history?.method??'Une note exige au moins une prévision MeteoAI archivée avant son échéance et une observation physique vérifiée. Aucune note n’est inventée.'}</p>
+          <p className="mt-2 text-[11px] leading-relaxed text-slate-400">Ces notes portent actuellement sur les températures. La pluie, le vent et les autres unités ne sont pas mélangés aux degrés. Les filtres du graphique n’affectent pas ces notes sur tout l’historique.</p>
         </div>
       </div>
     </MeteoSurface>

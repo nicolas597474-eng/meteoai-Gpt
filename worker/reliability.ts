@@ -8,6 +8,7 @@ import {getParisDateAndHour} from '../server/parisHourlyTime';
 import {ApiError} from './api-error';
 import {RELIABILITY_HORIZONS} from '../shared/reliabilityHorizons';
 import {readFusionVerificationStatus} from './fusion-verification';
+import {readMeteoAIReliability} from './meteoai-history';
 export {RELIABILITY_HORIZONS} from '../shared/reliabilityHorizons';
 
 const HOUR=3600000,DAY=24*HOUR,LOCATION='50.757_2.520';
@@ -119,7 +120,7 @@ export async function readReliability(input:any,env:any,now=Date.now()){
  const [a,trend]=covered?await Promise.all([archive(env,now,periods[input?.period??'7d']),archive(env,now,60)]):[empty,empty];
  const result=buildReliabilityReadModel(input,a,now,trend);
  if(!covered){result.locationKey=coords.lat.toFixed(3)+'_'+coords.lon.toFixed(3);result.availability.history='Aucune archive vérifiée pour ce lieu ; Hondeghem n’est jamais utilisé en remplacement.';}
- return result;
+ return {...result,meteoaiReliability:await readMeteoAIReliability(coords,env,now)};
 }
 export async function readReliabilityYesterday(input:any,env:any,now=Date.now()){
  const coords=coordinates(input),date=shift(getParisDateAndHour(now)!.date,-1),empty=emptyYesterday(date);

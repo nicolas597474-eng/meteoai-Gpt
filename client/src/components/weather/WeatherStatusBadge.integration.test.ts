@@ -24,9 +24,9 @@ describe("harmonisation des badges météo", () => {
     );
     expect(dashboard).toContain("Visibilité prévue");
     expect(dashboard).not.toContain(">Prévisions horaires");
-    expect(reliability).toContain("Notes de fiabilité");
-    expect(reliability).toContain("Note globale ·");
-    expect(reliability).toContain("Notes de fiabilité");
+    expect(reliability).toContain("Fiabilité MeteoAI");
+    expect(reliability).toContain("Note globale MeteoAI");
+    expect(reliability).toContain("Fiabilité MeteoAI");
     expect(reliability).not.toContain("normalizedScore");
     expect(aiLab).toContain("Hors fusion");
     expect(report).toContain(

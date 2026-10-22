@@ -20,8 +20,14 @@ export async function answerPlan(plan:Plan,port:DataPort,now=Date.now()):Promise
  const head=`${c.place.name} · ${c.period==='now'?'maintenant':dateLabel(c.date)}`;
  const result=(text:string,sources:Source[],href='/details'):Reply=>({text:head+'\n'+text,context:c,sources,links:[{label:'Ouvrir la page concernée',href}]});
  if(c.intent==='reliability'){
-  if(plan.explicitDate&&c.period==='day')return unavailable('La fiabilité se lit sur la période et l’horizon sélectionnés dans cette page, pas comme une note météo pour une journée future. Demandez « Quel est le score de fiabilité ? » pour lire cette sélection.',c);
-  const d=await port.reliability(c.place);if(d?.evidence?.status!=='available')return unavailable('Aucune archive de fiabilité lisible pour ce lieu. Les archives d’un autre lieu ne sont pas utilisées en remplacement.',c);
+  if(plan.explicitDate&&c.period==='day')return unavailable('La fiabilité se lit sur l’historique déjà comparé aux observations, pas comme une note météo pour une journée future. Demandez « Quel est le score de fiabilité ? » pour lire les notes disponibles.',c);
+  const d=await port.reliability(c.place);
+  if(d?.meteoaiReliability&&!c.models.length&&c.variable==='temperature'){
+   const h=d.meteoaiReliability,notes=[['Globale',h.global],['Horaire',h.hourly],['Quotidienne',h.daily]] as const;
+   const text=notes.map(([label,cell])=>`${label} MeteoAI : ${h.complete&&finite(cell?.note)?number(cell.note)+'/10'+(cell.qualified?'':' · provisoire'):'non disponible'}.`).join('\n');
+   return result(text+'\n'+h.reason+(h.global?.partial?' La globale est partielle : une seule composante est disponible.':'')+'\nCes notes comparent les températures MeteoAI archivées aux observations physiques, sur tout l’historique disponible.',[{kind:'calculation',label:'Historique MeteoAI · prévisions contre observations physiques',href:'/laboratoire'}],'/laboratoire');
+  }
+  if(d?.evidence?.status!=='available')return unavailable('Aucune archive de fiabilité lisible pour ce lieu. Les archives d’un autre lieu ne sont pas utilisées en remplacement.',c);
   const raw=d.notes?.provisionalHourly,note=noteFromMeanAbsoluteError(d.notes?.hourly?.qualifiedCells>0?d.notes.hourly.mae:null);
   const source:Source={kind:'calculation',label:`Archives vérifiées · ${d.period?.startDate} → ${d.period?.endDate} · ${d.selectedHorizon?.label}`,href:'/laboratoire'};
   const dates=(d.metrics??[]).map((r:any)=>Date.parse(r.latestComputedAt??'')).filter(finite);if(dates.length)source.updatedAt=new Date(Math.max(...dates)).toISOString();
