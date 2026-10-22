@@ -1,0 +1,19 @@
+{
+  "name": "meteoai-collecte-horaire",
+  "main": "worker.mjs",
+  "compatibility_date": "2026-10-20",
+  "workers_dev": false,
+  "preview_urls": false,
+  "vars": {
+    "COLLECTION_ENABLED": "true"
+  },
+  "triggers": {
+    "crons": [
+      "7 * * * *"
+    ]
+  },
+  "observability": {
+    "enabled": true
+  },
+  "account_id": "287dfd876db6f4e5d31aa8dc4946546b"
+}

@@ -122,3 +122,15 @@ private-import/
 qa/
 preview-state/
 *.private.*
+
+# Secrets Cloudflare et sauvegardes privées (modèle vide autorisé)
+.dev.vars*
+!.dev.vars.example
+.env.*
+!.env.example
+!.env.test
+.wrangler/
+backups/
+private-backups/
+*.dpapi
+*.enc

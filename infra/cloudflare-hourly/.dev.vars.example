@@ -1,0 +1,5 @@
+# Modèle vide : copier localement vers .dev.vars, ignoré par Git.
+# Les secrets de production se configurent dans Cloudflare, pas dans ce fichier.
+COLLECTION_ENABLED=false
+SITES_SERVICE_TOKEN=
+METEOAI_COLLECTOR_KEY=
