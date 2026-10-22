@@ -12,6 +12,7 @@ import {projectDashboardFusionTrace} from '../shared/dashboardFusionTrace';
 import {buildAILabReadModel,type AILabDailyDetail} from '../shared/aiLabReadModel';
 import {learningPerformance,selectLearnedProviderForecasts} from '../shared/qualifiedLearning';
 import {HOURLY_FORECAST_CACHE_MS,DAILY_FORECAST_CACHE_MS,MAX_SAVED_FORECAST_MS} from '../shared/forecastCachePolicy';
+import {recordMeteoAIForecast} from './meteoai-history';
 
 const flights = new Map<string, Promise<any>>();
 export async function cached(key: string, env: any, ctx: any, loader: () => Promise<any>, ttl = 300000): Promise<any> {
@@ -67,6 +68,7 @@ async function hourly(input:any,env:any,ctx:any){
   const computed=computeOfficialHourlyForecast(selectedForecasts,learning?.hourlyScores??[],{historyAvailable:learning?.available===true,historyBasis:'provider_run',exactHistoryAvailable:learning?.available===true,exactHistoryScores:learning?.exactHourlyScores??[],referenceAt,availabilityReasonByModel:Object.fromEntries(collection.diagnostics.filter((d:any)=>d.status!=='succeeded'&&d.modelName!=='best_match').map((d:any)=>[d.modelName,d.errorCode??d.status]))});
   if(!computed.hours.length)throw new Error('Prévisions fournisseur indisponibles : '+collection.diagnostics.map((d:any)=>d.modelName+' '+(d.errorCode??d.status)).join(', '));
   const at=new Date().toISOString(),hours=computed.hours;
+  await recordMeteoAIForecast('hourly',hours,coords,env,Date.parse(at)).catch(()=>console.warn('Archivage MeteoAI horaire indisponible ; prévisions conservées.'));
   const index=findActiveHourlyForecastIndex(hours,Date.now()),h=hours[index]??hours[0];
   const regime=buildOperationalRegime(null,null,h?{temp:h.temp,precipitation:h.precipitation,windSpeed:h.windSpeed,humidity:h.humidity,cloudCover:h.cloudCover,visibilityKm:h.visibility??null,validAt:h.validAt??null,updatedAt:new Date(at),sourceUpdatedAt:at,sourceLabel:'Prévision horaire officielle · moteur original'}:null);
   return {today,currentSnapshot:snapshot,hours,days:[],modelsUsed:expertForecasts.map((m:any)=>m.modelName),dailyStatus:'not_requested',dailyFallback:null,
@@ -95,6 +97,7 @@ async function fullDaily(input:any,env:any,ctx:any){
   ctx.waitUntil(env.archiveDailyForecasts({...coords,capturedAt:Date.now(),days:archiveDays.sort((a,b)=>a.date.localeCompare(b.date)),fusionSnapshot:aiLabDetails[getParisDate()]?{date:getParisDate(),computedAt:aiLabDetails[getParisDate()].trace.referenceAt,trace:aiLabDetails[getParisDate()].trace,values:value.days.find(day=>day.date===getParisDate())}:undefined}).catch(()=>{}));
  }
   if(!value.days.some(day=>[day.tempMax,day.tempMin,day.precipitation,day.windSpeed,day.windGust].some(v=>typeof v==='number'&&Number.isFinite(v))))throw Error('Prévisions quotidiennes indisponibles ; dernière réception conservée.');
+  await recordMeteoAIForecast('daily',value.days,coords,env).catch(()=>console.warn('Archivage MeteoAI quotidien indisponible ; prévisions conservées.'));
   return {days:value.days,modelsUsed:value.modelsUsed,dailyStatus:value.days.length?'ready':'not_ready',aiLabDetails,collectedAt:new Date().toISOString(),learningSummary:learning?{available:learning.available,scoreCount:learning.scoreCount,qualifiedDays:learning.qualifiedDays,hourlyEvidenceDays:learning.hourlyEvidenceDays,qualifiedGroups:learning.qualifiedGroups,lastScoreAt:learning.lastScoreAt,filesRejected:learning.filesRejected}:null};
 },DAILY_FORECAST_CACHE_MS);}
 export async function liveModelComparison(input:any,env:any,ctx:any){

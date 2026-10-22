@@ -546,7 +546,7 @@ export function MethodologySection({ data }: { data?: any }) {
             effectif.
           </li>
           <li>
-            Le seuil exige au moins {data?.evidence.minimumComparisons ?? "—"}{" "}
+            Pour qualifier les métriques des modèles, le seuil exige au moins {data?.evidence.minimumComparisons ?? "—"}{" "}
             comparaisons et {data?.evidence.minimumComparableDays ?? "—"} jours
             évalués distincts. Il qualifie la couverture, pas la performance ni
             une probabilité.
@@ -559,7 +559,7 @@ export function MethodologySection({ data }: { data?: any }) {
           </li>
           <li>
             L’accord inter-modèles, la qualité des stations et l’incertitude
-            statistique sont distincts. Les notes de synthèse affichées en haut de page restent indicatives et ne remplacent pas ces métriques détaillées.
+            statistique sont distincts. Les notes MeteoAI en haut de page comparent ses propres prévisions archivées aux observations, sur tout l’historique. Elles sont provisoires dès les premières paires ; les seuils des modèles ne bloquent pas leur affichage.
           </li>
         </ul>
         {data?.evidence?.note ? (

@@ -31,10 +31,10 @@ describe("ReliabilityLaboratory — preuves brutes", () => {
   it("sépare les métriques historiques par modèle, variable et horizon exact", () => {
     expect(source).toContain("ModelComparisonSection");
     expect(source).toContain(
-      "MAE, RMSE, biais, effectifs, dates et évolution par modèle × variable × horizon exact"
+      "Chaque unité et chaque seuil restent distincts"
     );
     expect(source).toContain(
-      "Le biais signé est descriptif et n’est jamais appliqué aux prévisions officielles futures."
+      "Prévision moins observation : positif = surestimation, négatif = sous-estimation."
     );
     expect(source).toContain(
       "Fiabilité historique · modèle × variable × horizon"
@@ -64,7 +64,7 @@ describe("ReliabilityLaboratory — preuves brutes", () => {
   });
 
   it("distingue un horizon non archivé d’une absence de qualification", () => {
-    expect(source).toContain("Note globale ·");
+    expect(source).toContain("Note globale MeteoAI");
     expect(source).toContain("Note horaire");
     expect(source).toContain("Note quotidienne");
     expect(source).toContain("Aucune note n’est inventée");
@@ -89,7 +89,7 @@ describe("ReliabilityLaboratory — preuves brutes", () => {
       "Best Match/agrégateurs, modèles candidats et autres horizons ne sont jamais utilisés comme substituts."
     );
     expect(source).toContain(
-      "L’accord inter-modèles décrit une dispersion de prévisions et n’est pas une mesure de fiabilité."
+      "Ces notes portent actuellement sur les températures."
     );
     expect(source).toContain("L’accord inter-modèles");
   });
