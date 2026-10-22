@@ -10,6 +10,7 @@ Application : [MeteoAI](https://meteoai-restauree-controle.givingbay1.chatgpt.si
 
 - `client/` : interface React, TypeScript, PWA, cache de l’appareil et assistant local.
 - `worker/` : backend Cloudflare Worker, routes privées, collecte, archivage, diagnostics, Netatmo et extension Gemini facultative.
+- `infra/cloudflare-hourly/` : déclencheur horaire Cloudflare existant, configurations, tests simulés et procédure de restauration.
 - `server/` et `shared/` : services et calculs météo réutilisés par l’application.
 - `drizzle/` : migrations SQLite/D1 de la version Sites ; `db/schema.ts` en décrit le schéma.
 - `client/public/` : images, icônes, textures, manifeste et service worker. Conserver les crédits des ressources.
@@ -41,6 +42,7 @@ pnpm check
 pnpm test
 pnpm build
 pnpm test:worker
+pnpm test:collector
 ```
 
 Les tests du Worker nécessitent le build préalable et utilisent des bases et services simulés. Les tests Gemini n’appellent pas le fournisseur réel. Le workflow GitHub utilise un runner Ubuntu standard et ne déploie pas automatiquement l’application.
@@ -49,9 +51,11 @@ Les tests du Worker nécessitent le build préalable et utilisent des bases et s
 
 La version en ligne fonctionne sur **Sites avec un Worker Cloudflare, une base D1 (`DB`) et un stockage R2 (`BUCKET`)**. Le manifeste `.openai/hosting.json` identifie ce Site existant. Ce dépôt contient du code et des migrations de structure, pas une copie de sa base de données.
 
-GitHub Pages seul ne fournit pas les routes serveur, D1, R2 ou l’authentification nécessaires. Publier ce dépôt ne déplace pas l’hébergement actuel, ne reconnecte pas automatiquement Netatmo et ne transfère pas le collecteur horaire Cloudflare existant. Les en-têtes d’identité `oai-authenticated-user-*` doivent être fournis par l’hébergement de confiance ; ils ne constituent pas une authentification autonome sur un nouveau serveur.
+GitHub Pages seul ne fournit pas les routes serveur, D1, R2 ou l’authentification nécessaires. Le code du collecteur horaire Cloudflare est conservé dans `infra/cloudflare-hourly/` ; le publier sur GitHub ne redéploie pas son instance existante. Le dépôt ne déplace pas l’hébergement actuel et ne reconnecte pas automatiquement Netatmo. Les en-têtes d’identité `oai-authenticated-user-*` doivent être fournis par l’hébergement de confiance ; ils ne constituent pas une authentification autonome sur un nouveau serveur.
 
 Ne jamais publier de clé Gemini, Client Secret Netatmo, jeton OAuth, clé de chiffrement, accès de collecte ou export utilisateur. Les secrets restent configurés côté serveur. `.env.example` et `.env.test` contiennent des exemples et valeurs factices de l’architecture historique, jamais des accès de production.
+
+Voir [la restauration du déclencheur](infra/cloudflare-hourly/README.md) et [la sauvegarde privée des clés et historiques](docs/PRIVATE_BACKUPS.md). Les modèles fournis ne contiennent aucune clé réelle et le dépôt ne contient pas de copie des données D1/R2.
 
 Gemini est facultatif, avec des plafonds et suspensions dans `worker/assistant-gemini.ts`. Une limite de requêtes ne garantit pas à elle seule la gratuité d’un projet Google devenu payant. Aucun abonnement, facturation ou nouveau service n’est activé par ce dépôt. Voir [Assistant local](docs/ASSISTANT_LOCAL.md), [Extension Gemini](docs/ASSISTANT_GEMINI.md) et [Connexion Netatmo](docs/connexion-netatmo-site.md).
 

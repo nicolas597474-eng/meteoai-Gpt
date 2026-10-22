@@ -30,4 +30,5 @@ jobs:
           CI: 'true'
       - run: pnpm build
       - run: pnpm test:worker
+      - run: pnpm test:collector
       - run: git diff --exit-code -- pnpm-lock.yaml
