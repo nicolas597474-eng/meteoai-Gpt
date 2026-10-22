@@ -23,15 +23,13 @@ const source = [
 
 describe("ReliabilityLaboratory — preuves brutes", () => {
   it("sélectionne une fenêtre et un horizon exacts sans repli vers une autre échéance", () => {
-    expect(source).toContain('useState<PeriodId>("7d")');
+    expect(source).toContain('const period = "7d" as const;');
     expect(source).toContain('useState<HorizonId>("6-24h")');
-    expect(source).toContain(
-      "Aucune échéance voisine ni période extérieure n’est utilisée en repli."
-    );
+    expect(source).toContain("onSelectHorizon={setHorizon}");
   });
 
   it("sépare les métriques historiques par modèle, variable et horizon exact", () => {
-    expect(source).toContain("Fiabilité historique, vérifiée sur observations");
+    expect(source).toContain("ModelComparisonSection");
     expect(source).toContain(
       "MAE, RMSE, biais, effectifs, dates et évolution par modèle × variable × horizon exact"
     );
@@ -83,7 +81,7 @@ describe("ReliabilityLaboratory — preuves brutes", () => {
     expect(source).toContain("firstScoreDate");
     expect(source).toContain("latestScoreDate");
     expect(source).toContain("latestComputedAt");
-    expect(source).toContain("Fenêtre");
+    expect(source).toContain("periodLabel={audit?.comparisons?.periodLabel}");
   });
 
   it("exclut Best Match et distingue la dispersion de l’erreur face aux observations", () => {
