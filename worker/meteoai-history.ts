@@ -19,7 +19,7 @@ async function init(env:any){
 
 /** Internal server capability only. Never invoked by the browser capture endpoint.
  * Archive the output just computed, never reconstruct/backdate a past emission. */
-export async function recordMeteoAIForecast(kind:'hourly'|'daily',rows:any[],coords:any,env:any,computedAt=Date.now()){
+export async function recordMeteoAIForecast(kind:'hourly'|'daily',rows:any[],coords:any,env:any,computedAt=Date.now(),origin:'server'|'application'='server'){
  if(coords.lat!==50.7567||coords.lon!==2.5204)return {stored:false};
  const at=Date.now();if(!Number.isSafeInteger(computedAt)||computedAt>at||at-computedAt>300000)throw Error('Calcul MeteoAI expiré');
  const points=rows.flatMap<any>(r=>{
@@ -31,7 +31,7 @@ export async function recordMeteoAIForecast(kind:'hourly'|'daily',rows:any[],coo
  if(!points.length)return {stored:false};
  if(points.length>361||new Set(points.map(p=>p.validAt)).size!==points.length)throw Error('Échéances MeteoAI incohérentes');
  await init(env);
- const payload={version:1,kind:'server_meteoai_forecast',location:LOCATION,origin:'server',engine:'existing_official_forecast',forecastKind:kind,computedAt,points};
+ const payload={version:1,kind:origin==='server'?'server_meteoai_forecast':'received_meteoai_forecast',location:LOCATION,origin,calibrationEligible:false,engine:'existing_official_forecast',forecastKind:kind,computedAt,points};
  const stored=await saveSigned(payload,'runs',env),availableAt=Math.max(Date.now(),computedAt),id=LOCATION+'/'+kind+'/'+stored.digest;
  await env.DB.prepare('INSERT INTO weather_meteoai_forecasts(id,location_key,kind,computed_at,available_at,valid_from,valid_to,object_key,digest) VALUES (?,?,?,?,?,?,?,?,?) ON CONFLICT(id) DO NOTHING').bind(id,LOCATION,kind,computedAt,availableAt,points[0].validAt,points.at(-1)!.endAt,stored.objectKey,stored.digest).run();
  cache.delete(env.DB);return {stored:true};
@@ -39,7 +39,8 @@ export async function recordMeteoAIForecast(kind:'hourly'|'daily',rows:any[],coo
 
 async function forecast(index:any,env:any,now:number){
  const p=await readSigned(index,'runs',env);
- if(p.kind!=='server_meteoai_forecast'||p.origin!=='server'||p.engine!=='existing_official_forecast'||p.forecastKind!==index.kind||p.computedAt!==index.computed_at||index.available_at<p.computedAt||index.available_at>now||index.id!==LOCATION+'/'+index.kind+'/'+index.digest||!Array.isArray(p.points)||!p.points.length||p.points.length>361)throw Error('Prévision MeteoAI non vérifiable');
+ const allowed=p.kind==='server_meteoai_forecast'&&p.origin==='server'||p.kind==='received_meteoai_forecast'&&p.origin==='application'&&p.calibrationEligible===false;
+ if(!allowed||p.engine!=='existing_official_forecast'||p.forecastKind!==index.kind||p.computedAt!==index.computed_at||index.available_at<p.computedAt||index.available_at>now||index.id!==LOCATION+'/'+index.kind+'/'+index.digest||!Array.isArray(p.points)||!p.points.length||p.points.length>361)throw Error('Prévision MeteoAI non vérifiable');
  const seen=new Set();
  for(const r of p.points){if(!Number.isSafeInteger(r.validAt)||!Number.isSafeInteger(r.endAt)||r.validAt<=p.computedAt||r.endAt<=r.validAt||getParisDateAndHour(r.validAt)?.date!==r.date||seen.has(r.validAt))throw Error('Échéance MeteoAI invalide');seen.add(r.validAt);
   if(index.kind==='hourly'?(r.validAt%HOUR!==0||r.endAt!==r.validAt+HOUR||!finite(r.temp)):(r.validAt!==parisLocalHourToUniqueEpochMs(r.date,0)||r.endAt!==parisLocalHourToUniqueEpochMs(shift(r.date,1),0)||![r.tempMax,r.tempMin].some(finite)))throw Error('Valeur MeteoAI invalide');
@@ -62,17 +63,21 @@ export async function finalizeMeteoAIHistory(env:any,now=Date.now()){
   try{
   const physical=await readVerifiedPhysicalDay(env,day.valid_date,now),pairs:MeteoAIPair[]=[],files=new Map<string,Promise<any>>();
   const find=async(kind:'hourly'|'daily',validAt:number)=>{
-   const index=await env.DB.prepare('SELECT * FROM weather_meteoai_forecasts WHERE location_key=? AND kind=? AND available_at<? AND valid_from<=? AND valid_to>? ORDER BY available_at DESC,id ASC LIMIT 1').bind(LOCATION,kind,validAt,validAt,validAt).first();
-   if(!index)return null;
+   const candidates=await env.DB.prepare('SELECT * FROM weather_meteoai_forecasts WHERE location_key=? AND kind=? AND available_at<? AND valid_from<=? AND valid_to>? ORDER BY available_at DESC,id ASC LIMIT 3').bind(LOCATION,kind,validAt,validAt,validAt).all();
+   if(!Array.isArray(candidates.results))throw Error('Index des prévisions indisponible');
+   const index=candidates.results[0];if(!index)return null;
    if(!files.has(index.id))files.set(index.id,forecast(index,env,now));
    const p=await files.get(index.id),point=p.points.find((r:any)=>r.validAt===validAt);
-   return point?{point,availableAt:index.available_at}:null;
+   const tied=candidates.results.filter((r:any)=>r.available_at===index.available_at);
+   if(tied.length>=3)return null;
+   if(tied.length===2){const other=tied[1];if(!files.has(other.id))files.set(other.id,forecast(other,env,now));const q=await files.get(other.id);if(JSON.stringify(q.points.find((r:any)=>r.validAt===validAt))!==JSON.stringify(point))return null;}
+   return point?{point,availableAt:index.available_at,origin:p.origin}:null;
   };
   for(const r of physical.references){const f=await find('hourly',r.validAt);if(!f||!finite(r.snapshot.temperature)||f.availableAt>=r.firstMeasuredAt)continue;
-   pairs.push({kind:'hourly',date:day.valid_date,variable:'temperature',validAt:r.validAt,availableAt:f.availableAt,observedAt:r.firstMeasuredAt,forecast:f.point.temp,observed:r.snapshot.temperature});
+   pairs.push({kind:'hourly',date:day.valid_date,variable:'temperature',validAt:r.validAt,availableAt:f.availableAt,observedAt:r.firstMeasuredAt,forecast:f.point.temp,observed:r.snapshot.temperature,forecastOrigin:f.origin});
   }
   const observed=buildQualifiedDailyObservation(physical.snapshots),daily=observed.isQualified?await find('daily',physical.start):null;
-  if(daily)for(const [field,variable] of [['tempMax','temperature_max'],['tempMin','temperature_min']] as const){if(finite(daily.point[field])&&finite(observed[field]))pairs.push({kind:'daily',date:day.valid_date,variable,validAt:physical.start,availableAt:daily.availableAt,observedAt:Math.min(...physical.references.map(r=>r.firstMeasuredAt)),forecast:daily.point[field],observed:observed[field]!});}
+  if(daily)for(const [field,variable] of [['tempMax','temperature_max'],['tempMin','temperature_min']] as const){if(finite(daily.point[field])&&finite(observed[field]))pairs.push({kind:'daily',date:day.valid_date,variable,validAt:physical.start,availableAt:daily.availableAt,observedAt:Math.min(...physical.references.map(r=>r.firstMeasuredAt)),forecast:daily.point[field],observed:observed[field]!,forecastOrigin:daily.origin});}
   const p={version:1,kind:'verified_meteoai_day',location:LOCATION,date:day.valid_date,createdAt:now,sourceDigest:day.source_digest,pairs};
   const saved=await saveSigned(p,'runs',env);
   await env.DB.prepare('INSERT INTO weather_meteoai_verification_days(id,location_key,valid_date,created_at,source_digest,object_key,digest) VALUES (?,?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET created_at=excluded.created_at,source_digest=excluded.source_digest,object_key=excluded.object_key,digest=excluded.digest WHERE weather_meteoai_verification_days.created_at<=excluded.created_at').bind(LOCATION+'/'+day.valid_date,LOCATION,day.valid_date,now,day.source_digest,saved.objectKey,saved.digest).run();stored++;

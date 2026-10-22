@@ -18,10 +18,15 @@ pas les moyennes d'erreur des modèles fournisseurs.
   consolidée à 30 comparaisons et 7 dates distinctes. Cela ne constitue ni une
   probabilité météorologique ni une garantie de performance future.
 
-Les sorties sont enregistrées côté serveur pendant le calcul horaire ou
-quotidien existant (`worker/weather.ts`), sans changer ses résultats ni faire
-de requête fournisseur supplémentaire. Elles portent leur disponibilité réelle
-d'archivage. La réception d'un cache ne devient pas une nouvelle émission.
+Les sorties sont enregistrées pendant le calcul horaire ou quotidien existant
+(`worker/weather.ts`), sans changer ses résultats ni faire de requête fournisseur
+supplémentaire. Les calculs faits sur le téléphone transmettent leurs seules
+températures futures au Site privé, avec session, contrôle d'origine, taille
+limitée et limite durable d'une capture par minute et type. Le serveur fixe la
+disponibilité à sa réception, signe le reçu et conserve la provenance
+`application`. Il ne prétend pas avoir recalculé ou authentifié indépendamment
+le résultat fourni par le téléphone. Ces notes sont descriptives, explicitement
+hors calibration. La réception d'un cache ne devient pas une nouvelle émission.
 
 Le traitement de collecte existant termine progressivement les journées closes
 à partir des références physiques originales. Il tourne après les échecs pour

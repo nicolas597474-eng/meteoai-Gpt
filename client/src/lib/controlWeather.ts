@@ -21,7 +21,13 @@ const offlineCache=new ForecastOfflineCache({origin:window.location.origin,stora
 const records=new Map<string,string>();
 const publicModels=new PublicModelCache({origin:window.location.origin,storage:globalThis.caches});
 let lastAILabLearningGeneration=learningHistoryGeneration();
-const env={waitForFreshWeather:true,getLearningEvidence:getLearningHistory,onForecastCacheReuse(key:string){
+const env={waitForFreshWeather:true,getLearningEvidence:getLearningHistory,async archiveMeteoAIForecast(payload:any){
+ if(payload.lat!==50.7567||payload.lon!==2.5204)return;
+ const fields=payload.kind==='hourly'?['validAt','temp']:['date','tempMin','tempMax'];
+ const body={...payload,points:payload.points.map((point:any)=>Object.fromEntries(fields.map(key=>[key,point[key]??null])))};
+ const response=await fetch('/api/history/meteoai-forecast',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),signal:AbortSignal.timeout(8000)});
+ if(!response.ok)throw Error('Archivage des prévisions MeteoAI indisponible');
+},onForecastCacheReuse(key:string){
  if(key.startsWith('model-collection-v1/'))observeOpenMeteo('https://api.open-meteo.com/v1/forecast?hourly=batch','cache');
  if(key.startsWith('daily-full-v4/'))observeOpenMeteo('https://api.open-meteo.com/v1/forecast?daily=batch','cache');
 },async archiveDailyForecasts(payload:unknown){

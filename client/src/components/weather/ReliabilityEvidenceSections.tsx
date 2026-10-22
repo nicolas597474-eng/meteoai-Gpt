@@ -271,6 +271,7 @@ export function ReliabilityNotesSummary({ data }: { data: any }) {
           </div>
           <h2 id="reliability-notes-title" className="mt-3 text-xl font-semibold tracking-tight text-white">Fiabilité MeteoAI</h2>
           <p className="mt-2 text-sm leading-relaxed text-slate-300">{history?.reason??'Lecture de l’historique des prévisions MeteoAI…'}</p>
+          {history?.applicationComparisonCount>0&&<p className="mt-2 text-xs text-slate-400">Inclut les prévisions transmises par l’application et horodatées à leur réception serveur. Ces notes descriptives n’activent pas la calibration des modèles.</p>}
           {globalNote!==null&&!history.global.qualified&&<p className="mt-2 text-sm text-sky-100">La note utilise les comparaisons déjà disponibles, même sur un ou deux jours. Elle reste provisoire : un historique court ne garantit pas la fiabilité à long terme.</p>}
           {globalNote!==null&&history.global.partial&&<p className="mt-2 text-sm text-amber-100">Globale partielle : {hourlyNote!==null?'prévisions horaires uniquement':'prévisions quotidiennes uniquement'}. La composante manquante ne compte pas comme zéro.</p>}
           <div className="mt-4 grid grid-cols-2 gap-2.5">
