@@ -1,0 +1,7 @@
+import {execFileSync} from 'node:child_process';
+import {defineConfig} from 'vite';
+import react from '@vitejs/plugin-react';
+import tailwindcss from '@tailwindcss/vite';
+import path from 'node:path';
+const sourceSha=(()=>{try{const sha=execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim();const dirty=execFileSync('git',['status','--porcelain'],{encoding:'utf8'}).trim();return /^[a-f0-9]{40}$/.test(sha)&&!dirty?sha:'unknown';}catch{return 'unknown';}})();
+export default defineConfig({define:{__BUILD_COMMIT_SHA__:JSON.stringify(sourceSha)},root:path.resolve(import.meta.dirname,'client'),plugins:[react(),tailwindcss(),{name:'control-runtime-ports',enforce:'pre',resolveId(source,importer){if(source==='node:crypto')return path.resolve(import.meta.dirname,'worker/crypto-web.ts');if(source==='./db'&&importer?.endsWith('/officialHourlyForecast.ts'))return path.resolve(import.meta.dirname,'worker/history-bridge.ts');if(source==='./stationService'&&['/dailyForecastVerification.ts','/currentDashboardWeather.ts','/ultraLocalService.ts'].some(name=>importer?.endsWith(name)))return path.resolve(import.meta.dirname,'worker/station-kind.ts');}}],resolve:{alias:{'@':path.resolve(import.meta.dirname,'client/src'),'@shared':path.resolve(import.meta.dirname,'shared'),'@assets':path.resolve(import.meta.dirname,'attached_assets')}},build:{outDir:path.resolve(import.meta.dirname,'dist/client'),emptyOutDir:true}});

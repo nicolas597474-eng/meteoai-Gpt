@@ -1,0 +1,1 @@
+ALTER TABLE `favorite_locations` ADD `localMode` enum('standard','local','ultra-local') DEFAULT 'standard';

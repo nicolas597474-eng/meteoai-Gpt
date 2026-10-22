@@ -1,0 +1,35 @@
+CREATE TABLE `shadow_weather_observation_days` (
+	`id` bigint AUTO_INCREMENT NOT NULL,
+	`observationDate` varchar(10) NOT NULL,
+	`locationKey` varchar(32) NOT NULL,
+	`expectedSourceCount` int NOT NULL DEFAULT 8,
+	`dailySourceCount` int NOT NULL DEFAULT 0,
+	`hourlySourceCount` int NOT NULL DEFAULT 0,
+	`totalRunCount` int NOT NULL DEFAULT 0,
+	`successRunCount` int NOT NULL DEFAULT 0,
+	`partialRunCount` int NOT NULL DEFAULT 0,
+	`failedRunCount` int NOT NULL DEFAULT 0,
+	`totalValueCount` int NOT NULL DEFAULT 0,
+	`validValueCount` int NOT NULL DEFAULT 0,
+	`missingValueCount` int NOT NULL DEFAULT 0,
+	`duplicateRunGroupCount` int NOT NULL DEFAULT 0,
+	`nonShadowValueCount` int NOT NULL DEFAULT 0,
+	`appliedToProductionCount` int NOT NULL DEFAULT 0,
+	`writeSuccessRate` float NOT NULL DEFAULT 0,
+	`contractIntegrityRate` float NOT NULL DEFAULT 0,
+	`coverageGatePassed` int NOT NULL DEFAULT 0,
+	`writeSuccessGatePassed` int NOT NULL DEFAULT 0,
+	`idempotenceGatePassed` int NOT NULL DEFAULT 0,
+	`isolationGatePassed` int NOT NULL DEFAULT 0,
+	`contractGatePassed` int NOT NULL DEFAULT 0,
+	`verdict` varchar(16) NOT NULL DEFAULT 'OBSERVING',
+	`reasons` json,
+	`evaluatedAt` bigint NOT NULL,
+	`createdAt` timestamp NOT NULL DEFAULT (now()),
+	`updatedAt` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
+	CONSTRAINT `shadow_weather_observation_days_id` PRIMARY KEY(`id`),
+	CONSTRAINT `shadow_observation_date_location_unique` UNIQUE(`observationDate`,`locationKey`)
+);
+--> statement-breakpoint
+CREATE INDEX `shadow_observation_location_date_idx` ON `shadow_weather_observation_days` (`locationKey`,`observationDate`);--> statement-breakpoint
+CREATE INDEX `shadow_observation_verdict_date_idx` ON `shadow_weather_observation_days` (`verdict`,`observationDate`);

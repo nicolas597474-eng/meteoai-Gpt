@@ -1,0 +1,447 @@
+{
+  "version": "7",
+  "dialect": "mysql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1783232661704,
+      "tag": "0000_special_falcon",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1783232978844,
+      "tag": "0001_mean_madrox",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1783573966051,
+      "tag": "0002_lean_cassandra_nova",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1783574853240,
+      "tag": "0003_sad_justin_hammer",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1783657268490,
+      "tag": "0004_confused_cassandra_nova",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1783659062787,
+      "tag": "0005_peaceful_umar",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1783661849837,
+      "tag": "0006_productive_scarlet_spider",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "5",
+      "when": 1783739128423,
+      "tag": "0007_greedy_flatman",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "5",
+      "when": 1784255162576,
+      "tag": "0008_loose_longshot",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "5",
+      "when": 1785205324495,
+      "tag": "0009_flippant_mathemanic",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "5",
+      "when": 1785506783754,
+      "tag": "0010_same_shard",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "5",
+      "when": 1786230852052,
+      "tag": "0011_simple_the_professor",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "5",
+      "when": 1786495325363,
+      "tag": "0012_mighty_sasquatch",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "5",
+      "when": 1786507270510,
+      "tag": "0013_gorgeous_epoch",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "5",
+      "when": 1786512956405,
+      "tag": "0014_broken_rocket_raccoon",
+      "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "5",
+      "when": 1786526617023,
+      "tag": "0015_furry_starhawk",
+      "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "5",
+      "when": 1786527771610,
+      "tag": "0016_needy_marrow",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "5",
+      "when": 1786542457217,
+      "tag": "0017_panoramic_old_lace",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "5",
+      "when": 1786552415447,
+      "tag": "0018_broad_leader",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "5",
+      "when": 1786560466112,
+      "tag": "0019_vengeful_sentinel",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "5",
+      "when": 1786562281700,
+      "tag": "0020_fuzzy_inhumans",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "5",
+      "when": 1786562856622,
+      "tag": "0021_long_nehzno",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "5",
+      "when": 1786609341379,
+      "tag": "0022_yellow_lionheart",
+      "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "5",
+      "when": 1786697847376,
+      "tag": "0023_flashy_mandarin",
+      "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "5",
+      "when": 1786849612852,
+      "tag": "0024_clear_george_stacy",
+      "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "5",
+      "when": 1786889816997,
+      "tag": "0025_dark_king_cobra",
+      "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "5",
+      "when": 1786938256624,
+      "tag": "0026_youthful_peter_quill",
+      "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "5",
+      "when": 1787239590528,
+      "tag": "0027_lush_blue_shield",
+      "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "5",
+      "when": 1787388671263,
+      "tag": "0028_remarkable_cerise",
+      "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "5",
+      "when": 1788341076773,
+      "tag": "0029_blue_the_call",
+      "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "5",
+      "when": 1788342888476,
+      "tag": "0030_outgoing_ikaris",
+      "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "5",
+      "when": 1788345567223,
+      "tag": "0031_dusty_havok",
+      "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "5",
+      "when": 1788357228032,
+      "tag": "0032_married_layla_miller",
+      "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "5",
+      "when": 1788364562375,
+      "tag": "0033_supreme_apocalypse",
+      "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "5",
+      "when": 1788370543442,
+      "tag": "0034_lumpy_bedlam",
+      "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "5",
+      "when": 1788919385126,
+      "tag": "0035_left_gambit",
+      "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "5",
+      "when": 1789278050800,
+      "tag": "0036_tired_winter_soldier",
+      "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "5",
+      "when": 1789278086476,
+      "tag": "0037_high_penance",
+      "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "5",
+      "when": 1789535323292,
+      "tag": "0038_charming_aaron_stack",
+      "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "5",
+      "when": 1789784994838,
+      "tag": "0039_fantastic_gwen_stacy",
+      "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "5",
+      "when": 1790755718507,
+      "tag": "0040_forecast_4h_batch_leases",
+      "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "5",
+      "when": 1790763411274,
+      "tag": "0041_hourly_run_verification",
+      "breakpoints": true
+    },
+    {
+      "idx": 42,
+      "version": "5",
+      "when": 1790828370925,
+      "tag": "0042_p1_6_admin_closure",
+      "breakpoints": true
+    },
+    {
+      "idx": 43,
+      "version": "5",
+      "when": 1790835785330,
+      "tag": "0043_hourly_collection_evidence",
+      "breakpoints": true
+    },
+    {
+      "idx": 44,
+      "version": "5",
+      "when": 1790926131232,
+      "tag": "0044_new_nuke",
+      "breakpoints": true
+    },
+    {
+      "idx": 45,
+      "version": "5",
+      "when": 1790935544859,
+      "tag": "0045_daily_fusion_performance",
+      "breakpoints": true
+    },
+    {
+      "idx": 46,
+      "version": "5",
+      "when": 1791011208982,
+      "tag": "0046_forecast_variable_coverage",
+      "breakpoints": true
+    },
+    {
+      "idx": 47,
+      "version": "5",
+      "when": 1791012504187,
+      "tag": "0047_certain_cyclops",
+      "breakpoints": true
+    },
+    {
+      "idx": 48,
+      "version": "5",
+      "when": 1791016076829,
+      "tag": "0048_gorgeous_stepford_cuckoos",
+      "breakpoints": true
+    },
+    {
+      "idx": 49,
+      "version": "5",
+      "when": 1791020703524,
+      "tag": "0049_local_precipitation_future_verification",
+      "breakpoints": true
+    },
+    {
+      "idx": 50,
+      "version": "5",
+      "when": 1791050050707,
+      "tag": "0050_prevision-vs-observation",
+      "breakpoints": true
+    },
+    {
+      "idx": 51,
+      "version": "5",
+      "when": 1791101726854,
+      "tag": "0051_hourly_exact_horizon_calibration",
+      "breakpoints": true
+    },
+    {
+      "idx": 52,
+      "version": "5",
+      "when": 1791105740447,
+      "tag": "0052_gorgeous_risque",
+      "breakpoints": true
+    },
+    {
+      "idx": 53,
+      "version": "5",
+      "when": 1791130148919,
+      "tag": "0053_provider_run_horizon",
+      "breakpoints": true
+    },
+    {
+      "idx": 54,
+      "version": "5",
+      "when": 1791207500396,
+      "tag": "0054_f27_station_observation_measurement_times",
+      "breakpoints": true
+    },
+    {
+      "idx": 55,
+      "version": "5",
+      "when": 1791209262249,
+      "tag": "0055_hourly_scoring_validation_version",
+      "breakpoints": true
+    },
+    {
+      "idx": 56,
+      "version": "5",
+      "when": 1791216861005,
+      "tag": "0056_daily_comparison_revisions",
+      "breakpoints": true
+    },
+    {
+      "idx": 57,
+      "version": "5",
+      "when": 1791380621015,
+      "tag": "0057_hourly_comparison_diagnostic_snapshots",
+      "breakpoints": true
+    },
+    {
+      "idx": 58,
+      "version": "5",
+      "when": 1791737609426,
+      "tag": "0058_citizen_fusion_activations",
+      "breakpoints": true
+    },
+    {
+      "idx": 59,
+      "version": "5",
+      "when": 1791841200000,
+      "tag": "0059_citizen_sensor_weights",
+      "breakpoints": true
+    },
+    {
+      "idx": 60,
+      "version": "5",
+      "when": 1791848400000,
+      "tag": "0060_citizen_sensor_anomalies",
+      "breakpoints": true
+    },
+    {
+      "idx": 61,
+      "version": "5",
+      "when": 1791855600000,
+      "tag": "0061_citizen_variable_qualifications",
+      "breakpoints": true
+    },
+    {
+      "idx": 62,
+      "version": "5",
+      "when": 1791791508304,
+      "tag": "0062_citizen_evaluation_events",
+      "breakpoints": true
+    }
+  ]
+}

@@ -1,0 +1,1 @@
+ALTER TABLE `station_observations` ADD CONSTRAINT `station_observations_station_time_unique` UNIQUE(`stationId`,`observedAt`);

@@ -1,0 +1,1 @@
+ALTER TABLE `shadow_weather_values` ADD `normalizationMetadata` json;

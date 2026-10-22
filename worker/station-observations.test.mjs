@@ -1,0 +1,26 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {DatabaseSync} from 'node:sqlite';
+import {readFileSync,mkdtempSync} from 'node:fs';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+import {pathToFileURL} from 'node:url';
+import {build} from 'esbuild';
+const output=join(mkdtempSync(join(tmpdir(),'meteo-observations-')),'observations.mjs');
+await build({entryPoints:['worker/station-observations.ts'],outfile:output,bundle:true,format:'esm',platform:'browser'});
+const {prepareObservations,recordObservations,observationStatus,verifyLatestObservations}=await import(pathToFileURL(output).href);
+const now=Date.parse('2026-10-17T13:00:00Z'),station={id:'netatmo-fixture',temp:14.2,time:now-300000,distance:2.3,elevation:32,anomaly:false};
+const payload=stations=>({lat:50.7567,lon:2.5204,stations});
+function context(){const db=new DatabaseSync(':memory:');const journal=JSON.parse(readFileSync('drizzle/meta/_journal.json','utf8'));for(const entry of journal.entries)db.exec(readFileSync('drizzle/'+entry.tag+'.sql','utf8'));
+ const objects=new Map();const DB={prepare(sql){return {bind(...args){return {sql,args,first:async()=>db.prepare(sql).get(...args),all:async()=>({results:db.prepare(sql).all(...args)}),run:async()=>db.prepare(sql).run(...args)};},first:async()=>db.prepare(sql).get()};},batch:async statements=>{db.exec('BEGIN');try{const results=statements.map(s=>db.prepare(s.sql).run(...s.args));db.exec('COMMIT');return results;}catch(e){db.exec('ROLLBACK');throw e;}}};
+ const BUCKET={put:async(key,value)=>objects.set(key,value),get:async key=>objects.has(key)?{arrayBuffer:async()=>new TextEncoder().encode(objects.get(key)).buffer}:null};return {db,objects,env:{DB,BUCKET}};}
+test('validation des lieux, des nombres et des doublons contradictoires',async()=>{await assert.rejects(prepareObservations({...payload([station]),lat:48},now));await assert.rejects(prepareObservations(payload([{...station,temp:NaN}]),now));await assert.rejects(prepareObservations(payload([station,{...station,temp:16}]),now));});
+test('les mesures trop anciennes, futures ou hors plage sont exclues ; les alertes restent explicites',async()=>{const value=await prepareObservations(payload([{...station,time:now-91*60000},{...station,time:now+6*60000},{...station,temp:80},{...station,time:now-40*60000,anomaly:true}]),now);assert.equal(value.excluded,3);assert.equal(value.rows.length,1);assert.deepEqual(value.rows[0].flags,['source_flagged','older_than_30_minutes']);assert.equal(value.rows[0].calibrationEligible,false);});
+test('persistance, anonymisation des identifiants, déduplication et conservation de la première valeur',async()=>{const {db,objects,env}=context();
+ const first=await recordObservations(payload([station]),env,now);assert.equal(first.stored,1);assert.equal(objects.size,1);const text=[...objects.values()][0];assert(!text.includes('netatmo-fixture'));assert(!text.includes('clientSecret'));
+ const repeat=await recordObservations(payload([station]),env,now+60000);assert.equal(repeat.stored,0);assert.equal(repeat.duplicates,1);assert.equal(objects.size,1);
+ const changed=await recordObservations(payload([{...station,temp:19}]),env,now+60000);assert.equal(changed.conflicts,1);assert.equal(db.prepare('SELECT temperature FROM weather_station_observations').get().temperature,14.2);
+ const status=await observationStatus(env);assert.equal(status.measurements,1);assert.equal(status.stations,1);assert.equal(status.calibration,'not_active');assert.equal(db.prepare('SELECT calibration_eligible FROM weather_station_observations').get().calibration_eligible,0);
+ const verified=await verifyLatestObservations(env);assert.equal(verified.verified,true);assert.equal(verified.measurements,1);objects.set([...objects.keys()][0],'archive altérée');await assert.rejects(verifyLatestObservations(env),/Empreinte/);db.close();
+});
+test('lots de plus de 80 stations : lectures et écritures bornées sans mélange des stations',async()=>{const {db,env}=context();const stations=Array.from({length:95},(_,i)=>({...station,id:'netatmo-fixture-'+i}));const first=await recordObservations(payload(stations),env,now);assert.equal(first.stored,95);const again=await recordObservations(payload(stations),env,now);assert.equal(again.duplicates,95);assert.equal((await observationStatus(env)).stations,95);db.close();});

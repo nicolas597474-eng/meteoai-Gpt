@@ -1,0 +1,1 @@
+ALTER TABLE `reliability_scores` ADD `regime` varchar(32);

@@ -1,0 +1,1 @@
+ALTER TABLE `forecasts` ADD CONSTRAINT `forecasts_location_date_service_unique` UNIQUE(`locationKey`,`date`,`serviceName`);

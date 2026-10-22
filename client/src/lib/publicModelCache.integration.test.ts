@@ -1,0 +1,21 @@
+import {afterEach,expect,it,vi} from 'vitest';
+vi.mock('../../../server/weatherServices',async(importOriginal)=>({...await importOriginal<any>(),collectHourlyForecastAllModelsWithDiagnostics:vi.fn(),collectCurrentWeatherSnapshot:vi.fn().mockResolvedValue(null)}));
+import {collectHourlyForecastAllModelsWithDiagnostics} from '../../../server/weatherServices';
+import {detailed} from '../../../worker/weather';
+import {PublicModelCache} from './publicModelCache';
+afterEach(()=>{vi.useRealTimers();vi.clearAllMocks();});
+it('un lot relu après réouverture ne crée ni nouvel appel modèles ni nouvelle capture ; Actualiser force un lot neuf',async()=>{
+ vi.useFakeTimers();vi.setSystemTime(new Date('2026-10-21T08:30:00Z'));
+ const rows=new Map<string,Response>(),storage={open:async()=>({match:async(r:Request)=>rows.get(r.url)?.clone(),put:async(r:Request,v:Response)=>rows.set(r.url,v.clone()),delete:async(r:Request)=>rows.delete(r.url),keys:async()=>Array.from(rows.keys()).map(url=>new Request(url))})} as unknown as CacheStorage;
+ const receipts:any[]=[],pending:Promise<any>[]=[],ctx={waitUntil(p:Promise<any>){pending.push(p);}};
+ const env=()=>({waitForFreshWeather:true,getLearningEvidence:async()=>null,BUCKET:new PublicModelCache({origin:'https://fixture.example',storage}),archiveForecasts:async(p:any)=>{receipts.push(p);}});
+ const firstAt=Date.now();
+ vi.mocked(collectHourlyForecastAllModelsWithDiagnostics).mockImplementation(async()=>({diagnostics:[],forecasts:[{modelName:'AROME',modelId:'meteofrance_arome_france_hd',requestStartedAt:Date.now()-1000,availableAt:Date.now(),sourceName:'open-meteo',hours:[1,2,3].map(n=>({validAt:firstAt+n*3600000,hour:11+n,temperature:10,apparentTemperature:8,precipitation:0,windSpeed:5,windGusts:8,windDirection:180,humidity:70,cloudCover:20,weatherCode:1}))}]} as any));
+ const input={lat:50.7567,lon:2.5204,includeExtendedPeriods:false};
+ const first=await detailed(input,env(),ctx);await Promise.all(pending);expect(first.hours.length).toBeGreaterThan(0);expect(receipts).toHaveLength(1);
+ vi.setSystemTime(new Date(firstAt+120000));
+ const second=await detailed(input,env(),ctx);await Promise.all(pending);
+ expect(second.hours.length).toBeGreaterThan(0);expect(collectHourlyForecastAllModelsWithDiagnostics).toHaveBeenCalledTimes(1);expect(receipts).toHaveLength(1);expect(receipts[0].capturedAt).toBe(firstAt);
+ await detailed(input,{...env(),forceFreshWeather:true},ctx);await Promise.all(pending);
+ expect(collectHourlyForecastAllModelsWithDiagnostics).toHaveBeenCalledTimes(2);expect(receipts).toHaveLength(2);expect(receipts[1].capturedAt).toBe(firstAt+120000);
+});

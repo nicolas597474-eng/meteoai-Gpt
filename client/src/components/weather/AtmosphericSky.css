@@ -1,0 +1,21 @@
+/* Le ciel hérite directement de la photographie déjà choisie par chaque page
+   pour ses cartes. Aucun calcul, appel météo ou animation supplémentaire. */
+.atmospheric-sky{
+ position:fixed;inset:0;z-index:-1;pointer-events:none;contain:strict;
+ background:#061426;
+}
+html[data-live-weather-sky] #root{isolation:isolate;min-height:100dvh;}
+html[data-live-weather-sky] .dashboard-weather-page,
+html[data-live-weather-sky] .weather-page-sky,
+html[data-live-weather-sky] .weather-page{background:transparent!important;}
+html[data-live-weather-sky] .dashboard-weather-page::before,
+html[data-live-weather-sky] .weather-page-sky::before{
+ content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+ background-color:#061426;background-position:center;background-size:cover;
+}
+html[data-live-weather-sky] .dashboard-weather-page::before{
+ background-image:linear-gradient(145deg,rgba(7,22,40,.76),rgba(5,14,27,.91)),var(--dashboard-sky-image);
+}
+html[data-live-weather-sky] .weather-page-sky::before{
+ background-image:linear-gradient(145deg,rgba(6,22,42,.80),rgba(4,13,26,.94)),var(--page-weather-sky-image);
+}
