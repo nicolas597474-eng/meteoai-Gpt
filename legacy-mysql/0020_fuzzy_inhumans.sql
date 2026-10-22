@@ -1,0 +1,2 @@
+ALTER TABLE `lead_time_scores` ADD `evidenceType` enum('physical_observation','model_reference','legacy_unqualified') DEFAULT 'legacy_unqualified' NOT NULL;--> statement-breakpoint
+ALTER TABLE `reliability_scores` ADD `evidenceType` enum('physical_observation','model_reference','legacy_unqualified') DEFAULT 'legacy_unqualified' NOT NULL;

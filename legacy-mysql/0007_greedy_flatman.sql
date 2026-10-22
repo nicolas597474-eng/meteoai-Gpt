@@ -1,0 +1,22 @@
+CREATE TABLE `location_forecasts` (
+	`id` int AUTO_INCREMENT NOT NULL,
+	`favoriteLocationId` int NOT NULL,
+	`userId` int NOT NULL,
+	`lat` float NOT NULL,
+	`lon` float NOT NULL,
+	`date` varchar(10) NOT NULL,
+	`tempMax` float,
+	`tempMin` float,
+	`tempCurrent` float,
+	`precipitation` float,
+	`windSpeed` float,
+	`condition` varchar(128),
+	`aiScore` float,
+	`confidenceScore` float,
+	`stabilityIndex` float,
+	`modelsData` json,
+	`explanation` text,
+	`collectedAt` timestamp NOT NULL DEFAULT (now()),
+	`updatedAt` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
+	CONSTRAINT `location_forecasts_id` PRIMARY KEY(`id`)
+);

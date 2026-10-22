@@ -1,0 +1,18 @@
+import {afterEach,expect,it,vi} from 'vitest';
+import {createAssistantRead,createDataPort} from './data';
+import {answerPlan} from './answers';
+import {planQuestion} from './router';
+import type {CurrentDashboardField} from '../../../server/currentDashboardWeather';
+const now=Date.parse('2026-10-21T16:30:00Z'),place={name:'Hondeghem',lat:50.7567,lon:2.5204};
+afterEach(()=>vi.useRealTimers());
+function setup(value:number|null=13.5,observedAt=new Date(now).toISOString()){
+ vi.useFakeTimers();vi.setSystemTime(now);
+ const temperature:CurrentDashboardField={value,provenance:{kind:'physical_stations',label:'Netatmo',observedAt,stationCount:1,stationSources:['netatmo'],ageMinutes:0,reason:null,measurements:[]}};
+ const current=vi.fn().mockResolvedValue({fields:{temperature}}),forecast=vi.fn().mockResolvedValue({}),reliability=vi.fn().mockResolvedValue({}),comparison=vi.fn().mockResolvedValue({});
+ const read=createAssistantRead({favorites:{getCurrentDashboardWeather:{fetch:current}},weather:{getDetailedForecast:{fetch:forecast},get15DayForecast:{fetch:forecast},getReliabilityLaboratory:{fetch:reliability}}},{fetch:comparison});
+ return {read,current,forecast,reliability,comparison,port:createDataPort(read,{period:'7d',horizon:'6-24h'})};
+}
+it('la question de température atteint la vraie lecture favorites du Dashboard et conserve sa provenance',async()=>{const s=setup(),reply=await answerPlan(planQuestion('Quelle température fait-il maintenant ?',null,place,now),s.port,now);expect(s.current).toHaveBeenCalledWith({lat:place.lat,lon:place.lon},{staleTime:60000});expect(reply.text).toContain('13,5 °C');expect(reply.sources[0]).toMatchObject({kind:'observation',label:'Netatmo',updatedAt:new Date(now).toISOString()});expect(s.forecast).not.toHaveBeenCalled();});
+it('une vraie valeur zéro reste une mesure et une valeur ancienne reste indisponible',async()=>{const s=setup(0);expect((await s.port.current(place,'temperature')).value).toBe(0);const stale=setup(20,new Date(now-31*60000).toISOString());expect((await stale.port.current(place,'temperature')).value).toBeNull();});
+it('accepte les horodatages distincts d’une synthèse physique sans inventer un instant unique',async()=>{const s=setup(),oldest=new Date(now-10*60000).toISOString(),measurements=[{stationId:'a',stationName:'A',source:'netatmo',observedAt:oldest,ageMinutes:10},{stationId:'b',stationName:'B',source:'netatmo',observedAt:new Date(now-2*60000).toISOString(),ageMinutes:2}];s.current.mockResolvedValue({fields:{temperature:{value:12.3,provenance:{kind:'physical_stations',label:'Stations physiques qualifiées',observedAt:null,stationCount:2,measurements}}}});const reading=await s.port.current(place,'temperature');expect(reading.value).toBe(12.3);expect(reading.kind).toBe('observation');expect(reading.updatedAt).toBe(oldest);expect(reading.reason).toContain('plus ancien relevé');for(const observedAt of [null,new Date(now-31*60000).toISOString(),new Date(now+2*60000).toISOString()]){measurements[1].observedAt=observedAt as any;expect((await s.port.current(place,'temperature')).value).toBeNull();}});
+it('les autres lectures conservent leurs services, options de cache et filtres',async()=>{const s=setup();await s.read('getDetailedForecast',place,0);await s.read('get15DayForecast',place,60000);await s.port.reliability(place);await s.read('getModelComparison',place,60000);expect(s.forecast).toHaveBeenCalledTimes(2);expect(s.forecast).toHaveBeenCalledWith(place,{staleTime:0});expect(s.reliability).toHaveBeenCalledWith({lat:place.lat,lon:place.lon,period:'7d',horizon:'6-24h'},{staleTime:60000});expect(s.comparison).toHaveBeenCalledWith(place,{staleTime:60000});expect(s.current).not.toHaveBeenCalled();});

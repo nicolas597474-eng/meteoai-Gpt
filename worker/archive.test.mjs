@@ -1,0 +1,28 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {DatabaseSync} from 'node:sqlite';
+import {readFileSync,mkdtempSync} from 'node:fs';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+import {pathToFileURL} from 'node:url';
+import {build} from 'esbuild';
+const output=join(mkdtempSync(join(tmpdir(),'meteo-archive-')),'archive.mjs');
+await build({entryPoints:['worker/archive.ts'],outfile:output,bundle:true,format:'esm',platform:'browser'});
+const {validateCapture,recordCapture,archiveStatus,verifyLatestCapture}=await import(pathToFileURL(output).href);
+const now=Date.parse('2026-10-17T12:30:00Z');
+const input=()=>({lat:50.7567,lon:2.5204,capturedAt:now,models:[{modelName:'AROME',modelId:'meteofrance_arome_france',hours:[{validAt:now-3600000,temperature:99},{validAt:now+3600000,temperature:14,precipitation:0}]}]});
+test('les heures déjà passées ne deviennent pas des prévisions évaluables',()=>{const value=validateCapture(input(),now);assert.equal(value.models[0].hours.length,1);assert.equal(value.models[0].hours[0].temperature,14);assert.equal(value.kind,'forecast');});
+test('les captures périmées, modèles doublés et valeurs invalides sont refusés',()=>{assert.throws(()=>validateCapture({...input(),capturedAt:now-600000},now));const duplicate=input();duplicate.models.push(duplicate.models[0]);assert.throws(()=>validateCapture(duplicate,now));const invalid=input();invalid.models[0].hours[1].temperature=Infinity;assert.throws(()=>validateCapture(invalid,now));});
+test('persistance réelle : archive immuable, provenance distincte, sauvegarde conservée',async()=>{
+ const db=new DatabaseSync(':memory:');for(const file of ['0000_dashing_pestilence.sql','0001_youthful_robin_chapel.sql'])db.exec(readFileSync('drizzle/'+file,'utf8'));
+ db.prepare('INSERT INTO recovery_weather_history(source_table,source_id,weather_date,payload,digest) VALUES (?,?,?,?,?)').run('observations',12,'2026-10-12','{"temperature":10}','legacy-digest');
+ const objects=new Map();const env={DB:{prepare(sql){return {bind(...args){return {first:async()=>db.prepare(sql).get(...args),run:async()=>db.prepare(sql).run(...args)};},first:async()=>db.prepare(sql).get(),all:async()=>({results:db.prepare(sql).all()})};}},BUCKET:{put:async(key,value)=>objects.set(key,value),get:async(key)=>({arrayBuffer:async()=>new TextEncoder().encode(objects.get(key)).buffer})}};
+ const first=await recordCapture(input(),env,'browser',now);assert.equal(first.stored,true);
+ const second=await recordCapture(input(),env,'browser',now+60000);assert.equal(second.duplicate,true);assert.equal(objects.size,1);
+ const raw=JSON.parse([...objects.values()][0]);assert.equal(raw.observation,false);assert.equal(raw.calibrationEligible,false);assert.equal(raw.origin,'browser');
+ await recordCapture(input(),env,'server',now);assert.equal(objects.size,2);
+ const status=await archiveStatus(env);assert.equal(status.legacy[0].rows,1);assert.equal(status.legacy[0].lastDate,'2026-10-12');assert.equal(status.captures.length,2);assert.equal(status.groundTruth,'not_connected');assert.equal(status.calibration,'not_active');
+ assert.equal(db.prepare('SELECT capture_day FROM weather_captures LIMIT 1').get().capture_day,'2026-10-17');
+ const verified=await verifyLatestCapture(env);assert.equal(verified.verified,true);assert.equal(verified.forecasts,1);
+ const last=db.prepare('SELECT object_key FROM weather_captures ORDER BY received_at DESC LIMIT 1').get();objects.set(last.object_key,'archive altérée');await assert.rejects(verifyLatestCapture(env),/Empreinte/);db.close();
+});

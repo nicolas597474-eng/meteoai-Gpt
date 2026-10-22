@@ -1,0 +1,1 @@
+ALTER TABLE `station_collection_snapshots` ADD CONSTRAINT `station_collection_snapshots_location_date_unique` UNIQUE(`locationKey`,`date`);

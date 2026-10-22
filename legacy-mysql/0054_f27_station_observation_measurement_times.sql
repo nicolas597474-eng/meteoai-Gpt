@@ -1,0 +1,1 @@
+ALTER TABLE `station_observations` ADD `measurementTimes` json;
