@@ -19,6 +19,7 @@ import { useLocation } from "@/contexts/LocationContext";
 import { usePageWeatherSky } from "@/hooks/usePageWeatherSky";
 import { trpc } from "@/lib/trpc";
 import AssistantBlock from "@/assistant/AssistantBlock";
+import {RELIABILITY_HORIZONS, type ReliabilityHorizonId} from "@shared/reliabilityHorizons";
 
 /**
  * Le graphique de tendance est le seul consommateur de la bibliothèque recharts
@@ -41,14 +42,7 @@ function ReliabilityTrendChartFallback() {
 }
 
 type PeriodId = "24h" | "7d" | "30d" | "90d" | "365d";
-type HorizonId =
-  | "0-6h"
-  | "6-24h"
-  | "24-48h"
-  | "2-3d"
-  | "4-7d"
-  | "8-10d"
-  | "11-15d";
+type HorizonId = ReliabilityHorizonId;
 
 const PERIODS: Array<{ id: PeriodId; label: string }> = [
   { id: "24h", label: "24 h" },
@@ -58,15 +52,7 @@ const PERIODS: Array<{ id: PeriodId; label: string }> = [
   { id: "365d", label: "365 jours" },
 ];
 
-const HORIZONS: Array<{ id: HorizonId; label: string }> = [
-  { id: "0-6h", label: "0–6 h" },
-  { id: "6-24h", label: "6–24 h" },
-  { id: "24-48h", label: "24–48 h" },
-  { id: "2-3d", label: "2–3 jours" },
-  { id: "4-7d", label: "4–7 jours" },
-  { id: "8-10d", label: "8–10 jours" },
-  { id: "11-15d", label: "11–15 jours" },
-];
+const HORIZONS = RELIABILITY_HORIZONS;
 
 function DataUnavailableCard({ isError }: { isError: boolean }) {
   return (

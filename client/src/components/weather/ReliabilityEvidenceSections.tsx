@@ -122,7 +122,8 @@ export function metric(
   digits = 2
 ) {
   if (value == null || !Number.isFinite(Number(value))) return "—";
-  return `${Number(value).toFixed(digits)}${unit ? ` ${unit}` : ""}`;
+  const formatted=Number(value).toFixed(digits);
+  return `${Number(formatted)===0?(0).toFixed(digits):formatted}${unit ? ` ${unit}` : ""}`;
 }
 
 export function signedMetric(
@@ -131,8 +132,8 @@ export function signedMetric(
   digits = 2
 ) {
   if (value == null || !Number.isFinite(Number(value))) return "—";
-  const number = Number(value);
-  return `${number > 0 ? "+" : ""}${number.toFixed(digits)}${unit ? ` ${unit}` : ""}`;
+  const formatted=Number(value).toFixed(digits),rounded=Number(formatted);
+  return `${rounded > 0 ? "+" : ""}${rounded===0?(0).toFixed(digits):formatted}${unit ? ` ${unit}` : ""}`;
 }
 
 export function statusLabel(status: string) {
@@ -294,7 +295,7 @@ export function ReliabilityNotesSummary({ data }: { data: any }) {
               {dateRange} · Synthèse
             </span>
             <span className="rounded-full border border-slate-700/80 bg-slate-950/30 px-2.5 py-1 text-[11px] text-slate-400">
-              {comparedHours} comparaisons horaires · {comparedDays} dates quotidiennes qualifiées
+              {comparedHours} comparaison{comparedHours===1?'':'s'} horaire{comparedHours===1?'':'s'} · {comparedDays} date{comparedDays===1?'':'s'} quotidienne{comparedDays===1?'':'s'} qualifiée{comparedDays===1?'':'s'}
             </span>
           </div>
           <h2 id="reliability-notes-title" className="mt-3 text-xl font-semibold tracking-tight text-white">
@@ -302,7 +303,7 @@ export function ReliabilityNotesSummary({ data }: { data: any }) {
           </h2>
           <p className="mt-2 max-w-3xl text-sm leading-relaxed text-slate-300">{narrative}</p>
           {hourlyNote == null && typeof data.notes?.provisionalHourly?.mae === 'number' && Number.isFinite(data.notes.provisionalHourly.mae) && <p className="mt-2 text-sm leading-relaxed text-sky-100" role="status">
-            Erreur horaire provisoire : {metric(data.notes.provisionalHourly.mae, '°C')} · {data.notes.provisionalHourly.comparisonCount} comparaisons · {data.notes.provisionalHourly.evaluatedDays} dates · {data.notes.provisionalHourly.modelCount} modèles. Moyenne des MAE disponibles par modèle, distincte d’une note qualifiée sur 10.
+            Erreur horaire provisoire : {metric(data.notes.provisionalHourly.mae, '°C')} · {data.notes.provisionalHourly.comparisonCount} comparaison{data.notes.provisionalHourly.comparisonCount===1?'':'s'} · {data.notes.provisionalHourly.evaluatedDays} date{data.notes.provisionalHourly.evaluatedDays===1?'':'s'} · {data.notes.provisionalHourly.modelCount} modèle{data.notes.provisionalHourly.modelCount===1?'':'s'}. Moyenne des MAE disponibles par modèle, distincte d’une note qualifiée sur 10.
             {data.notes.provisionalHourly.partialArchive ? ' Lecture partielle : seuls les fichiers vérifiés sont utilisés.' : ' Les heures valides restent utilisables même si leur journée n’atteint pas 18 heures.'}
           </p>}
           <div className="mt-4 grid grid-cols-2 gap-2.5">

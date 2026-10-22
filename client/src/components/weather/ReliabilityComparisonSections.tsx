@@ -42,6 +42,10 @@ function largestErrorPairs(pairs: VerificationPair[]) {
   );
 }
 
+export function physicalStationCount(evidence:VerificationPair['stationEvidence']){
+  return new Set(evidence.map(station=>station.stationId)).size;
+}
+
 export function LargestErrorsSection({
   pairs,
   isLoading,
@@ -149,9 +153,9 @@ export function LargestErrorsSection({
                     </div>
                   </div>
                   <p className="mt-2 text-[11px] leading-relaxed text-slate-400">
-                    {pair.stationEvidence.length} station
-                    {pair.stationEvidence.length === 1 ? "" : "s"} physique
-                    {pair.stationEvidence.length === 1 ? "" : "s"} · émission{" "}
+                    {physicalStationCount(pair.stationEvidence)} station
+                    {physicalStationCount(pair.stationEvidence) === 1 ? "" : "s"} physique
+                    {physicalStationCount(pair.stationEvidence) === 1 ? "" : "s"} · émission{" "}
                     {formatTimestamp(
                       new Date(pair.forecastIssuedAt).toISOString()
                     )}
@@ -395,7 +399,7 @@ export function ModelComparisonSection({
                       {metric((row.metrics ?? row.rawMetrics)?.mae, row.unit, 2)}
                       {row.metrics == null && row.rawMetrics != null ? (
                         <span className="mt-1 block font-sans text-[11px] font-semibold text-amber-300">
-                          {row.rawValidated ? "seuil non atteint" : "brut non validé"}
+                          {row.rawValidated ? row.status==='incomplete_metrics' ? "lecture partielle" : "seuil non atteint" : "brut non validé"}
                         </span>
                       ) : null}
                     </td>
@@ -477,14 +481,13 @@ function trendText(row: ReliabilityMetricRow) {
   const trend = row.trend;
   if (!trend) return row.status === "history_unavailable" ? "Évolution indisponible : historique non lisible." : row.status === "horizon_not_stored" ? "Évolution indisponible : horizon non archivé séparément." : "Évolution indisponible : aucune comparaison vérifiée.";
   if (trend.status === "history_unavailable")
-    return "Évolution indisponible : historique non lisible.";
+    return trend.reason ?? "Évolution indisponible : historique non lisible.";
   if (trend.status === "no_evidence")
     return "Évolution indisponible : une fenêtre n’a pas de preuves complètes.";
   if (trend.status !== "qualified" || !trend.delta)
     return "Évolution non qualifiée : les deux fenêtres n’atteignent pas le seuil.";
   const d = trend.delta;
-  const sign = (value: number) => (value > 0 ? "+" : "");
-  return `Δ MAE ${sign(d.mae)}${d.mae.toFixed(2)} · RMSE ${sign(d.rmse)}${d.rmse.toFixed(2)} · biais ${sign(d.bias)}${d.bias.toFixed(2)} ${row.unit}; récent ${trend.recentWindowStart}–${trend.recentWindowEnd}, précédent ${trend.previousWindowStart}–${trend.previousWindowEnd}.`;
+  return `Δ MAE ${signedMetric(d.mae)} · RMSE ${signedMetric(d.rmse)} · biais ${signedMetric(d.bias)} ${row.unit}; récent ${trend.recentWindowStart}–${trend.recentWindowEnd}, précédent ${trend.previousWindowStart}–${trend.previousWindowEnd}.`;
 }
 
 export function MethodologySection({ data }: { data?: any }) {
